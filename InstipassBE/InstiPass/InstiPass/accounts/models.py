@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.contrib.auth.base_user import BaseUserManager
-from institution.models import Institution
+# from institution.models import Institution
 # Create your models here.
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -41,6 +41,24 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+class SignupTracker(models.Model):
+    fingerprint = models.CharField(max_length=64, unique=True, blank=True, null=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, null=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.fingerprint} {self.ip_address}"
+
+
+class InstitutionSignupToken(models.Model):
+    email = models.EmailField()
+    token = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)    
+    
+    def __str__(self):
+        return f"{self.email}"
 
     
 

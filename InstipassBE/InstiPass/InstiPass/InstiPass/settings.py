@@ -69,12 +69,12 @@ AUTHENTICATION_BACKENDS = [
    
 ]
 # ALLAUTH SETTINGS
-SOCIALACCOUNT_QUERY_EMAIL = True
-LOGIN_REDIRECT_URL = "/"
-ACCOUNT_SIGNUP_REDIRECT_URL = "/signup/redirect"
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
-ACCOUNT_AUTHENTICATED_REDIRECT_URL = "/"
+# SOCIALACCOUNT_QUERY_EMAIL = True
+# LOGIN_REDIRECT_URL = "/"
+# ACCOUNT_SIGNUP_REDIRECT_URL = "/signup/redirect"
+# ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+# ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
+# ACCOUNT_AUTHENTICATED_REDIRECT_URL = "/"
 AUTH_USER_MODEL = 'accounts.User'
 SITE_ID = 1
 SOCIALACCOUNT_PROVIDERS = {
@@ -100,9 +100,9 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_AUTHENTICATION_CLASSES':
       [
-        
-        'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        
         
     ],
     'DEFAULT_SCHEMA_CLASS':"drf_spectacular.openapi.AutoSchema",
@@ -135,7 +135,18 @@ RECAPTCHA_USE_SSL = True
 # CAPTCHA_TEST_MODE = True
 NOCAPTCHA = True
 
+# settings.py
+# CORS_ALLOW_CREDENTIALS = True
 
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3000',  # or your frontend origin
+# ]
+
+# CSRF_TRUSTED_ORIGINS = [
+#     'http://localhost:3000',  # same origin as frontend
+# ]
+
+CSRF_COOKIE_AGE=3600
 # JWT SETTINGS
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -165,7 +176,7 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
@@ -270,12 +281,6 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',  # This is the default engine for SQLite
-#         'NAME': BASE_DIR / 'db.sqlite3',  # The default SQLite file in your project directory
-#     }
-# }
 
 
 
@@ -292,4 +297,3 @@ EMAIL_USE_SSL = False
 MEDIA_ROOT = os.path.join(BASE_DIR,"media")
 MEDIA_URL='/media/'
 
-CSRF_COOKIE_AGE=3600

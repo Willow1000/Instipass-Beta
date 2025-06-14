@@ -91,7 +91,7 @@ const ParallaxHero = ({ darkMode }) => {
   return (
     <section 
       ref={containerRef}
-      className={`relative overflow-hidden h-screen ${darkMode ? 'bg-gray-800' : 'bg-[#1D3557]'} text-white`}
+      className={`relative overflow-hidden pt-52 h-screen ${darkMode ? 'bg-gray-800' : 'bg-[#1D3557]'} text-white`}
     >
       {/* Animated background particles */}
       <canvas 
@@ -101,11 +101,11 @@ const ParallaxHero = ({ darkMode }) => {
       
       {/* Parallax content */}
       <div className="relative z-10 container mx-auto px-6 h-full flex flex-col justify-center">
-        <motion.div 
+        {/* <motion.div 
           style={{ y: y1, opacity }}
           className="max-w-2xl"
-        >
-          <motion.h1 
+        > */}
+          {/* <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -122,9 +122,9 @@ const ParallaxHero = ({ darkMode }) => {
           >
             A digital student ID system designed to streamline your academic and administrative processes. 
             Access your student ID anytime, anywhere with just a few taps.
-          </motion.p>
+          </motion.p> */}
           
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -147,7 +147,7 @@ const ParallaxHero = ({ darkMode }) => {
               Get Started
             </motion.a>
           </motion.div>
-        </motion.div>
+        </motion.div> */}
       </div>
       
       {/* Scroll indicator */}

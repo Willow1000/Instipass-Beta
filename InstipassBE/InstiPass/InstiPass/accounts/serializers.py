@@ -15,9 +15,7 @@ class UserSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password1= serializers.CharField(write_only = True,min_length = 8)
     password = serializers.CharField(write_only =False ,min_length = 8)
-
-       
-
+    
     def validate(self,data):
         if data['password'] != data['password1']:
             raise serializers.ValidationError("Passwords do not match")
@@ -27,17 +25,15 @@ class UserSerializer(serializers.Serializer):
         
     def create(self,validated_data):
 
-        role = self.context.get('role')
+        # role = self.context.get('role')
+        role = 'institution'
         user=User.objects.create_user(username=validated_data["username"],email=validated_data['email'],password = validated_data['password1'],role=role)
      
         return user
         
 
-
-
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email'
-
     def validate(self, attrs):
         credentials = {
             'email': attrs.get('email'),
@@ -54,11 +50,4 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise PermissionDenied("Only Institutions can access this endpoint.")
 
         data = super().validate(attrs)
-        csrf_token = get_token(self.context['request'])
-        data['user'] = {
-            'id': user.id,
-            'email': user.email,
-            'username': user.username
-        }
-        data['csrf_token'] = csrf_token
         return data

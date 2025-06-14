@@ -6,4 +6,4 @@ class IdConfig(AppConfig):
     name = 'Id'
 
     def ready(self):
-        from Id.signals import id_processing_update, id_ready_update
+        from Id.signals import send_id_processing_update, send_id_ready_notification

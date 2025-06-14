@@ -6,4 +6,4 @@ class StudentConfig(AppConfig):
     name = 'student'
 
     def ready(self):
-        from .signals import application_received,delete_student
+        from .signals import application_received,delete_student, update_student

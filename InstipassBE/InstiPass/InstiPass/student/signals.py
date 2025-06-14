@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from logs.models import IdprogressLog,AdminActionsLog
 from logs.middleware import get_current_request
+
 @receiver(post_save,sender=Student,dispatch_uid="update_status")
 def application_received(sender,instance,created,**kwargs):
     if created:
@@ -19,16 +20,9 @@ def application_received(sender,instance,created,**kwargs):
                 [instance.email],
                 fail_silently=False
             )
-    else:
-        send_mail(
-                "Your profile has been updated successfully",
-                "Your profile has been updated. If you did not make this change, please contact us",
-                "admin@django.com",
-                [instance.email],
-                fail_silently=False
-            )
+  
 @receiver(post_delete,sender=Student,dispatch_uid="student_deleted")
-def delete_student(sender,instance,**kwargs):
+def delete_student(sender,instance,created,**kwargs):
     request = get_current_request()
     user = request.user if request else None
     AdminActionsLog.objects.create(
@@ -38,3 +32,23 @@ def delete_student(sender,instance,**kwargs):
         victim = f"{instance.id} {instance.first_name} {instance.last_name} "
 
     )
+
+@receiver(post_save,sender=Student,dispatch_uid="student_updated")
+def update_student(sender,instance,created,**kwargs):
+    if not created:
+        send_mail(
+            "Your application has been updated succssefully",
+            "Thank you for your patience",
+            "admin@django.com",
+            [instance.email],
+            fail_silently=False
+        )
+        request = get_current_request()
+        user = request.user if request else None
+        AdminActionsLog.objects.create(
+            action = "UPDATE",
+            admin = user,
+            victim_type= "STUDENT",
+            victim = f"{instance.id} {instance.first_name} {instance.last_name} "
+
+        )    

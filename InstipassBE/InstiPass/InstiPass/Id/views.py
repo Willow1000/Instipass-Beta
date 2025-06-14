@@ -14,7 +14,7 @@ class CreateIdInProcess(LoginRequiredMixin,UserPassesTestMixin,CreateView):
     fields = [
         "Id"
     ]
-    login_url = "/login/"
+    
     redirect_field_name = "next"
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.is_staff
@@ -28,7 +28,7 @@ class CreateIdReady(LoginRequiredMixin,UserPassesTestMixin,CreateView):
     fields = [
         "Id"
     ]    
-    login_url = "../../student/accounts/login/"
+    
     redirect_field_name = "next"
     def test_func(self):
         return self.request.user.is_authenticated and self.request.user.is_staff

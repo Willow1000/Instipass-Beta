@@ -32,18 +32,18 @@ const Footer = ({ darkMode = false }) => {
           <div>
             <h3 className="font-bold text-lg mb-4">Resources</h3>
             <ul className={`space-y-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              <li><a href="#" className="hover:text-[#2A9D8F]">Documentation</a></li>
-              <li><a href="#" className="hover:text-[#2A9D8F]">API</a></li>
-              <li><a href="#" className="hover:text-[#2A9D8F]">Support</a></li>
+              <li><a href="/docs" className="hover:text-[#2A9D8F]" target="_blank" rel="noopener noreferrer">Documentation</a></li>
+              <li><a href="/api/docs" className="hover:text-[#2A9D8F]" target="_blank" rel="noopener noreferrer">API</a></li>
+              <li><a href="/support" className="hover:text-[#2A9D8F]" target="_blank" rel="noopener noreferrer">Support</a></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-bold text-lg mb-4">Legal</h3>
             <ul className={`space-y-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              <li><a href="#" className="hover:text-[#2A9D8F]">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-[#2A9D8F]">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-[#2A9D8F]">Cookie Policy</a></li>
+              <li><a href="/instipass/privacy_policy" className="hover:text-[#2A9D8F]" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+              <li><a href="/instipass/terms_and_conditions" className="hover:text-[#2A9D8F]" target="_blank" rel="noopener noreferrer">Terms of Service</a></li>
+              <li><a href="/instipass/cookie_policy" className="hover:text-[#2A9D8F]" target="_blank" rel="noopener noreferrer">Cookie Policy</a></li>
             </ul>
           </div>
         </div>

@@ -1,14 +1,28 @@
-import React, { useState, useEffect } from 'react';
+"use client";
+
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
 
-const BookDemoModal = ({ darkMode }) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Updated component to accept onClose prop and properly handle state
+const BookDemoModal = ({ darkMode, onClose }) => {
+  // Client-side state initialization
+  const [isOpen, setIsOpen] = useState(true); // Start as true since parent controls visibility
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone_number: '', // Added phone field
+    institution: '',
+    size: '',
+    date: '',
+    time: ''
+  });
+  const [formErrors, setFormErrors] = useState({
+    name: '',
+    email: '',
+    phone_number: '', // Added phone field error
     institution: '',
     size: '',
     date: '',
@@ -16,37 +30,138 @@ const BookDemoModal = ({ darkMode }) => {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   
+  // Client-side only date calculation
+  const [minDate, setMinDate] = useState('');
+  
+  // Initialize min date on client-side only
+  useEffect(() => {
+    setMinDate(new Date().toISOString().split('T')[0]);
+  }, []);
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user types
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
   
-  const handleSubmit = (e) => {
+  // Validate form data for each step
+  const validateStep = (stepNumber) => {
+    const errors = {};
+    let isValid = true;
+    
+    if (stepNumber === 1) {
+      if (!formData.name.trim()) {
+        errors.name = 'Name is required';
+        isValid = false;
+      }
+      
+      if (!formData.email.trim()) {
+        errors.email = 'Email is required';
+        isValid = false;
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        errors.email = 'Email is invalid';
+        isValid = false;
+      }
+      
+      // Added phone validation
+      if (!formData.phone_number.trim()) {
+        errors.phone = 'Phone number is required';
+        isValid = false;
+      }
+    } else if (stepNumber === 2) {
+      if (!formData.institution.trim()) {
+        errors.institution = 'Institution name is required';
+        isValid = false;
+      }
+      
+      if (!formData.size) {
+        errors.size = 'Please select institution size';
+        isValid = false;
+      }
+    } else if (stepNumber === 3) {
+      if (!formData.date) {
+        errors.date = 'Please select a date';
+        isValid = false;
+      }
+      
+      if (!formData.time) {
+        errors.time = 'Please select a time';
+        isValid = false;
+      }
+    }
+    
+    setFormErrors(prev => ({ ...prev, ...errors }));
+    return isValid;
+  };
+  
+  // Updated to send data to the API
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateStep(3)) {
+      return;
+    }
+    
     setIsSubmitted(true);
     
-    // Simulate submission success
-    setTimeout(() => {
-      setIsOpen(false);
-      setStep(1);
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        institution: '',
-        size: '',
-        date: '',
-        time: ''
+    try {
+      // Send data to the specified API endpoint
+      const response = await fetch('http://127.0.0.1:8000/super/api/bookdemo/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
-    }, 3000);
+      
+      if (!response.ok) {
+        console.log(formData)
+        throw new Error('Failed to submit booking');
+      }
+      
+      // Handle successful submission
+      setTimeout(() => {
+        handleClose();
+        // Reset form state
+        setStep(1);
+        setIsSubmitted(false);
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          institution: '',
+          size: '',
+          date: '',
+          time: ''
+        });
+      }, 3000);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setIsSubmitted(false);
+      // Could add error state and display to user
+    }
   };
   
   const nextStep = () => {
-    setStep(step + 1);
+    if (validateStep(step)) {
+      setStep(step + 1);
+    }
   };
   
   const prevStep = () => {
     setStep(step - 1);
+  };
+  
+  // Handle closing the modal
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) {
+      onClose();
+    }
   };
   
   // Animation for the "Book a Demo" button
@@ -57,6 +172,7 @@ const BookDemoModal = ({ darkMode }) => {
   
   const controls = useAnimation();
   
+  // Move animation to useEffect to avoid SSR/CSR mismatch
   useEffect(() => {
     if (inView) {
       controls.start({
@@ -69,7 +185,26 @@ const BookDemoModal = ({ darkMode }) => {
         }
       });
     }
-  }, [controls, inView]);
+  }, [controls, inView]); // Added inView to dependency array
+  
+  // Use ref for modal to handle click outside
+  const modalRef = useRef(null);
+  
+  // Add click outside handler on client-side only
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
+        handleClose();
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]); // Added isOpen to dependency array
   
   return (
     <>
@@ -96,10 +231,11 @@ const BookDemoModal = ({ darkMode }) => {
         </motion.button>
       </motion.div>
       
-      {/* Modal */}
+      {/* Modal - Only render on client side when open */}
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <motion.div
+            ref={modalRef}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -110,7 +246,7 @@ const BookDemoModal = ({ darkMode }) => {
           >
             <button
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               aria-label="Close demo booking"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -124,8 +260,8 @@ const BookDemoModal = ({ darkMode }) => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-4"
               >
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <div className={`w-16 h-16 rounded-full ${darkMode ? 'bg-green-600' : 'bg-green-100'} flex items-center justify-center mx-auto mb-4`}>
+                  <svg className={`w-8 h-8 ${darkMode ? 'text-white' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                   </svg>
                 </div>
@@ -192,9 +328,12 @@ const BookDemoModal = ({ darkMode }) => {
                           } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
                           placeholder="John Doe"
                         />
+                        {formErrors.name && (
+                          <p className="mt-1 text-sm text-red-500">{formErrors.name}</p>
+                        )}
                       </div>
                       
-                      <div className="mb-6">
+                      <div className="mb-4">
                         <label htmlFor="email" className="block text-sm font-medium mb-2">Email Address</label>
                         <input
                           type="email"
@@ -210,6 +349,31 @@ const BookDemoModal = ({ darkMode }) => {
                           } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
                           placeholder="your@email.com"
                         />
+                        {formErrors.email && (
+                          <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>
+                        )}
+                      </div>
+                      
+                      {/* Added Phone Number Field */}
+                      <div className="mb-6">
+                        <label htmlFor="phone" className="block text-sm font-medium mb-2">Phone Number</label>
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone_number"
+                          value={formData.phone_number}
+                          onChange={handleChange}
+                          required
+                          className={`w-full px-4 py-3 rounded-lg border ${
+                            darkMode 
+                              ? 'bg-gray-700 border-gray-600 text-white focus:border-[#2A9D8F]' 
+                              : 'bg-white border-gray-300 text-gray-900 focus:border-[#1D3557]'
+                          } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
+                          placeholder="(123) 456-7890"
+                        />
+                        {formErrors.phone && (
+                          <p className="mt-1 text-sm text-red-500">{formErrors.phone}</p>
+                        )}
                       </div>
                       
                       <motion.button
@@ -248,6 +412,9 @@ const BookDemoModal = ({ darkMode }) => {
                           } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
                           placeholder="University of Excellence"
                         />
+                        {formErrors.institution && (
+                          <p className="mt-1 text-sm text-red-500">{formErrors.institution}</p>
+                        )}
                       </div>
                       
                       <div className="mb-6">
@@ -270,6 +437,9 @@ const BookDemoModal = ({ darkMode }) => {
                           <option value="large">Large (5,000-15,000 students)</option>
                           <option value="xlarge">Very Large (15,000+ students)</option>
                         </select>
+                        {formErrors.size && (
+                          <p className="mt-1 text-sm text-red-500">{formErrors.size}</p>
+                        )}
                       </div>
                       
                       <div className="flex space-x-4">
@@ -310,18 +480,16 @@ const BookDemoModal = ({ darkMode }) => {
                     >
                       <div className="mb-4">
                         <label htmlFor="date" className="block text-sm font-medium mb-2">Preferred Date</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Calendar size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-                          </div>
+                        <div className={`relative flex items-center`}>
+                          <Calendar className={`absolute left-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
                           <input
                             type="date"
                             id="date"
                             name="date"
+                            min={minDate}
                             value={formData.date}
                             onChange={handleChange}
                             required
-                            min={new Date().toISOString().split('T')[0]}
                             className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
                               darkMode 
                                 ? 'bg-gray-700 border-gray-600 text-white focus:border-[#2A9D8F]' 
@@ -329,14 +497,15 @@ const BookDemoModal = ({ darkMode }) => {
                             } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
                           />
                         </div>
+                        {formErrors.date && (
+                          <p className="mt-1 text-sm text-red-500">{formErrors.date}</p>
+                        )}
                       </div>
                       
                       <div className="mb-6">
                         <label htmlFor="time" className="block text-sm font-medium mb-2">Preferred Time</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Clock size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-                          </div>
+                        <div className={`relative flex items-center`}>
+                          <Clock className={`absolute left-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
                           <select
                             id="time"
                             name="time"
@@ -359,6 +528,9 @@ const BookDemoModal = ({ darkMode }) => {
                             <option value="4:00 PM">4:00 PM</option>
                           </select>
                         </div>
+                        {formErrors.time && (
+                          <p className="mt-1 text-sm text-red-500">{formErrors.time}</p>
+                        )}
                       </div>
                       
                       <div className="flex space-x-4">
@@ -382,7 +554,7 @@ const BookDemoModal = ({ darkMode }) => {
                           whileTap={{ scale: 0.98 }}
                           className="w-1/2 py-3 px-4 bg-[#2A9D8F] text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors"
                         >
-                          Schedule Demo
+                          Book Demo
                         </motion.button>
                       </div>
                     </motion.div>

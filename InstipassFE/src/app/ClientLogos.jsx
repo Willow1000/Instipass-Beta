@@ -1,26 +1,19 @@
+"use client"
 import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Users, Building, Award, CheckCircle } from 'lucide-react';
+import {logos} from "./utils/fetch"
 
-const ClientLogos = ({ darkMode }) => {
-  const logos = [
-    { name: 'University of Excellence', type: 'University' },
-    { name: 'Tech Institute', type: 'Technical College' },
-    { name: 'Global Academy', type: 'International School' },
-    { name: 'Westlake University', type: 'University' },
-    { name: 'Northridge College', type: 'College' },
-    { name: 'Eastern Technical Institute', type: 'Technical Institute' },
-    { name: 'Summit Education Group', type: 'Education Group' },
-    { name: 'Horizon International', type: 'International School' }
-  ];
+
+const  ClientLogos = ({ darkMode }) => {
+
   
-  // Animation for logos
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1
   });
-  
+ 
   const controls = useAnimation();
   
   useEffect(() => {
@@ -124,18 +117,18 @@ const ClientLogos = ({ darkMode }) => {
               } hover:shadow-md transition-shadow`}
             >
               <div className="w-12 h-12 rounded-full bg-[#1D3557] bg-opacity-10 flex items-center justify-center mb-3">
-                {logo.type.includes('University') ? (
+                {logo.institution_type.includes('University') ? (
                   <Building size={24} className="text-[#1D3557]" />
-                ) : logo.type.includes('College') ? (
+                ) : logo.institution_type.includes('College') ? (
                   <Users size={24} className="text-[#1D3557]" />
-                ) : logo.type.includes('Technical') ? (
+                ) : logo.institution_type.includes('Technical') ? (
                   <Award size={24} className="text-[#1D3557]" />
                 ) : (
                   <CheckCircle size={24} className="text-[#1D3557]" />
                 )}
               </div>
               <h3 className="font-medium text-center">{logo.name}</h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{logo.type}</p>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{logo.institution_type}</p>
             </motion.div>
           ))}
         </motion.div>
