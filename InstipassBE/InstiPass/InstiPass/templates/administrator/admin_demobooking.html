@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+{% block title %}Demo Bookings{% endblock %}
+{% block content %}
+    {% include "admin_nav.html" %}
+    
+    <div class="container-fluid py-4">
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h2 text-dark mb-1">Demo Bookings</h1>
+                        <p class="text-muted mb-0">Manage and monitor Demo Sessions</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-primary fs-6">Total Entries: {{ bookings |length }}</span>
+                        <a href="{% url 'admin_create_demosession' %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i>Schedule Demo
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="refreshPage()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if bookings %}
+            <!-- Filters and Search -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="searchEntries" placeholder="Search by field1, category1...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-muted small">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="OPTION1">Option 1</option>
+                                <option value="OPTION2">Option 2</option>
+                                <option value="OPTION3">Option 3</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-muted small">Category 1</label>
+                            <select class="form-select" id="category1Filter">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category }}">{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-muted small">Date Range</label>
+                            <select class="form-select" id="dateFilter">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-muted small">Per Page</label>
+                            <select class="form-select" id="perPageFilter">
+                                <option value="25">25 entries</option>
+                                <option value="50" selected>50 entries</option>
+                                <option value="100">100 entries</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                               Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center border-0 bg-primary bg-opacity-10">
+                        <div class="card-body">
+                            <i class="bi bi-1-circle text-primary bi-2x mb-2"></i>
+                            <h5 class="card-title text-primary" id="option1Count">0</h5>
+                            <p class="card-text text-muted small">Option 1 Status</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-0 bg-success bg-opacity-10">
+                        <div class="card-body">
+                            <i class="bi bi-2-circle text-success bi-2x mb-2"></i>
+                            <h5 class="card-title text-success" id="option2Count">0</h5>
+                            <p class="card-text text-muted small">Option 2 Status</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-0 bg-warning bg-opacity-10">
+                        <div class="card-body">
+                            <i class="bi bi-3-circle text-warning bi-2x mb-2"></i>
+                            <h5 class="card-title text-warning" id="option3Count">0</h5>
+                            <p class="card-text text-muted small">Option 3 Status</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-0 bg-info bg-opacity-10">
+                        <div class="card-body">
+                            <i class="bi bi-calendar-date text-info bi-2x mb-2"></i>
+                            <h5 class="card-title text-info">{{ bookings | length }}</h5>
+                            <p class="card-text text-muted small">Total Entries</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Bookings Table -->
+            <div class="card">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Demo Bookings</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="exportEntries()">
+                                <i class="bi bi-download me-1"></i>Export
+                            </button>
+                            <a href="/super/clear/demobookings">
+                                <button class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-trash me-1"></i>Clear Sessions
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="aryEntriesTable">
+                            <thead class="table-dark sticky-top">
+                                <tr>
+                                    <th class="px-3 py-3 text-center" style="width: 60px;">
+                                        <small>ID</small>
+                                    </th>
+                                    <th class="px-3 py-3" style="width: 180px;">
+                                        <small>Institution</small>
+                                    </th>
+                                    <th class="px-3 py-3" style="width: 150px;">
+                                        <small>Email</small>
+                                    </th>
+                                    <th class="px-3 py-3" style="width: 120px;">
+                                        <small>Phone Number</small>
+                                    </th>
+                                    <th class="px-3 py-3" style="width: 180px;">
+                                        <small>Scheduled Date</small>
+                                    </th>
+                                    <th class="px-3 py-3 text-center" style="width: 120px;">
+                                        <small>Scheduled Time</small>
+                                    </th>
+                                    <th class="px-3 py-3 text-center" style="width: 100px;">
+                                        <small>Status</small>
+                                    </th>
+                                    <th class="px-3 py-3 text-center" style="width: 150px;">
+                                        <small>Created</small>
+                                    </th>
+                                    <th class="px-3 py-3 text-center" style="width: 120px;">
+                                        <small>Actions</small>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="aryEntriesTableBody">
+                                {% for entry in bookings %}
+                                
+                                <tr class="entry-row" 
+                                    data-field1="{{ entry.field1 }}" 
+                                    data-field2="{{ entry.field2 }}"
+                                    data-field3="{{ entry.field3 }}"
+                                    data-category1="{{ entry.category1 }}"
+                                    data-category2="{{ entry.category2 }}"
+                                    data-date-field="{{ entry.date_field|date:'Y-m-d' }}"
+                                    data-time-field="{{ entry.time_field }}"
+                                    data-status="{{ entry.status }}"
+                                    data-created="{{ entry.created_at|date:'Y-m-d H:i:s' }}">
+                                    
+                                    
+                                        <td class="text-center px-3 py-2">
+                                            <small class="text-muted">#{{ entry.id }}</small>
+                                        </td>
+                                    
+                                        <td class="px-3 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <a href="{% url 'admin_demosession_detail' entry.id %}" class="cursor-ponter text-decoration-none">
+                                                <i class="bi bi-person-circle text-primary me-2"></i>
+                                                <span class="fw-medium">{{ entry.institution }}</span>
+                                                </a>
+                                            </div>
+                                        </td>
+                                 
+                                        <td class="px-3 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-envelope text-primary me-2"></i>
+                                                <span class="fw-medium">{{ entry.email }}</span>
+                                            </div>
+                                        </td>
+                                         <td class="px-3 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-phone text-primary me-2"></i>
+                                                <span class="fw-medium">{{ entry.phone_number }}</span>
+                                            </div>
+                                        </td>
+                                        
+                                        <td class="px-3 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-calendar text-primary me-2"></i>
+                                                <small class="text-muted"c>{{ entry.date }}</small>
+                                            </div>
+                                        </td>
+                                        
+                                        <td class="px-3 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-clock text-primary me-2"></i>
+                                                <small class="text-muted">{{ entry.time }}</small>
+                                            </div>
+                                        </td>
+                                        
+                                        
+                                        <td class="text-center px-3 py-2">
+                                            {% if entry.status %}
+                                                {% if entry.status == 'OPTION1' %}
+                                                    <span class="badge bg-primary">Option 1</span>
+                                                {% elif entry.status == 'OPTION2' %}
+                                                    <span class="badge bg-success">Option 2</span>
+                                                {% elif entry.status == 'OPTION3' %}
+                                                    <span class="badge bg-warning">Option 3</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ entry.get_status_display }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-light text-dark">Not Set</span>
+                                            {% endif %}
+                                        </td>
+                                        
+                                        <td class="text-center px-3 py-2">
+                                            <small class="text-muted">
+                                                {{ entry.created_at|date:"M d, Y" }}<br>
+                                                {{ entry.created_at|date:"H:i:s" }}
+                                            </small>
+                                        </td>
+                                    
+
+                                    <td class="px-3 py-3 text-center">
+                                        <div class="btn-group d-flex gap-2">
+                                            <a href='{% url "admin_reschedule_demosession" entry.id %}' class="btn btn-sm btn-outline-primary">
+                                                <!-- <i class="bi bi-eye"></i> -->
+                                               Reschedule
+                                            </a>
+                                            <a href="{% url 'delete_demobooking' entry.id %}" class="btn btn-sm btn-outline-danger">
+                                                Delete
+                                                    <!-- <i class="bi bi-trash"></i> -->
+   
+                                            </a>
+                                        </div>
+                                    </td>
+                                    
+                                    
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination Info -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small">
+                    Showing <span id="showingCount">{{ ary_entries|length }}</span> of {{ ary_entries|length }} entries
+                </div>
+                <div id="paginationControls" class="d-flex gap-2">
+                    <!-- Pagination controls would go here -->
+                </div>
+            </div>
+
+        {% elif no_results %}
+            <!-- No Search Results -->
+            <div class="text-center py-5">
+                <div class="text-muted">
+                    <i class="bi bi-search bi-4x mb-4 text-secondary"></i>
+                    <h4>No entries found</h4>
+                    <p>Try adjusting your search criteria or filters.</p>
+                    <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            <!-- No Entries -->
+            <div class="text-center py-5">
+                <div class="text-muted">
+                    <i class="bi bi-inbox bi-4x mb-4 text-secondary"></i>
+                    <h4>No Demo Sessions yet</h4>
+                    
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- JavaScript for filtering and dynamic functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatistics();
+            initializeFilters();
+        });
+
+        function updateStatistics() {
+            const rows = document.querySelectorAll('.entry-row');
+            let option1Count = 0;
+            let option2Count = 0;
+            let option3Count = 0;
+            let totalCount = rows.length;
+
+            rows.forEach(row => {
+                const status = row.dataset.status;
+                if (status === 'OPTION1') option1Count++;
+                else if (status === 'OPTION2') option2Count++;
+                else if (status === 'OPTION3') option3Count++;
+            });
+
+            document.getElementById('option1Count').textContent = option1Count;
+            document.getElementById('option2Count').textContent = option2Count;
+            document.getElementById('option3Count').textContent = option3Count;
+            document.getElementById('totalEntriesCount').textContent = totalCount;
+        }
+
+        function initializeFilters() {
+            const searchInput = document.getElementById('searchEntries');
+            const statusFilter = document.getElementById('statusFilter');
+            const category1Filter = document.getElementById('category1Filter');
+            const dateFilter = document.getElementById('dateFilter');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', filterEntries);
+            }
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterEntries);
+            }
+            if (category1Filter) {
+                category1Filter.addEventListener('change', filterEntries);
+            }
+            if (dateFilter) {
+                dateFilter.addEventListener('change', filterEntries);
+            }
+        }
+
+        function filterEntries() {
+            const searchTerm = document.getElementById('searchEntries').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const category1Filter = document.getElementById('category1Filter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            const rows = document.querySelectorAll('.entry-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                let visible = true;
+
+                // Search filter
+                if (searchTerm) {
+                    const field1 = row.dataset.field1.toLowerCase();
+                    const category1 = row.dataset.category1.toLowerCase();
+                    const field2 = row.dataset.field2.toLowerCase();
+                    
+                    if (!field1.includes(searchTerm) && 
+                        !category1.includes(searchTerm) && 
+                        !field2.includes(searchTerm)) {
+                        visible = false;
+                    }
+                }
+
+                // Status filter
+                if (statusFilter && row.dataset.status !== statusFilter) {
+                    visible = false;
+                }
+
+                // Category filter
+                if (category1Filter && row.dataset.category1 !== category1Filter) {
+                    visible = false;
+                }
+
+                // Date filter
+                if (dateFilter) {
+                    const entryDate = new Date(row.dataset.dateField);
+                    const today = new Date();
+                    let showEntry = false;
+
+                    switch (dateFilter) {
+                        case 'today':
+                            showEntry = entryDate.toDateString() === today.toDateString();
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            showEntry = entryDate >= weekAgo;
+                            break;
+                        case 'month':
+                            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            showEntry = entryDate >= monthAgo;
+                            break;
+                    }
+
+                    if (!showEntry) {
+                        visible = false;
+                    }
+                }
+
+                row.style.display = visible ? '' : 'none';
+                if (visible) visibleCount++;
+            });
+
+            document.getElementById('showingCount').textContent = visibleCount;
+        }
+
+        function clearFilters() {
+            document.getElementById('searchEntries').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('category1Filter').value = '';
+            document.getElementById('dateFilter').value = '';
+            filterEntries();
+        }
+
+        function refreshPage() {
+            location.reload();
+        }
+
+        function exportEntries() {
+            // Implement export functionality
+            alert('Export functionality would be implemented here');
+        }
+
+        function bulkDelete() {
+            // Implement bulk delete functionality
+            alert('Bulk delete functionality would be implemented here');
+        }
+    </script>
+{% endblock %}
+

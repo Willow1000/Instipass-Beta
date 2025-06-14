@@ -1,0 +1,1105 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { 
+  MousePointer, Square, Type, Image, QrCode, Circle, 
+  Move, RotateCw, Copy, Trash2, AlignLeft, AlignCenter, 
+  AlignRight, AlignJustify, Bold, Italic, Underline,
+  Layers, Eye, EyeOff, Lock, Unlock, ZoomIn, ZoomOut,
+  Grid, Ruler, Palette, Upload, Download, Save, Undo, Redo
+} from 'lucide-react';
+
+const FigmaIDDesigner = () => {
+  const [tool, setTool] = useState('select');
+  const [selectedSide, setSelectedSide] = useState('front');
+  const [selectedElements, setSelectedElements] = useState([]);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showRuler, setShowRuler] = useState(true);
+  const [dragMode, setDragMode] = useState(null);
+  const [dragStart, setDragStart] = useState(null);
+  const [clipboard, setClipboard] = useState([]);
+  
+  const canvasRef = useRef(null);
+  const [template, setTemplate] = useState({
+    id: 'template_1',
+    name: 'University ID Card',
+    dimensions: { width: 85.6, height: 53.98 },
+    front: {
+      background: { type: 'solid', color: '#1e40af' },
+      elements: [
+        {
+          id: 'logo',
+          type: 'image',
+          content: '/api/placeholder/60/60',
+          position: { x: 15, y: 15 },
+          size: { width: 60, height: 60 },
+          rotation: 0,
+          style: { 
+            borderRadius: '8px',
+            opacity: 1,
+            shadow: '0 2px 4px rgba(0,0,0,0.1)'
+          },
+          locked: false,
+          visible: true,
+          layer: 1
+        },
+        {
+          id: 'institution_name',
+          type: 'text',
+          content: 'UNIVERSITY OF EXCELLENCE',
+          position: { x: 85, y: 20 },
+          size: { width: 200, height: 25 },
+          rotation: 0,
+          style: { 
+            fontSize: '14px', 
+            fontWeight: 'bold', 
+            color: '#ffffff',
+            fontFamily: 'Arial',
+            textAlign: 'left',
+            letterSpacing: '0.5px'
+          },
+          locked: false,
+          visible: true,
+          layer: 2
+        },
+        {
+          id: 'student_name',
+          type: 'text',
+          content: 'JOHN ALEXANDER SMITH',
+          position: { x: 85, y: 50 },
+          size: { width: 180, height: 20 },
+          rotation: 0,
+          style: { 
+            fontSize: '16px', 
+            fontWeight: 'bold', 
+            color: '#ffffff',
+            fontFamily: 'Arial',
+            textAlign: 'left'
+          },
+          locked: false,
+          visible: true,
+          layer: 3
+        },
+        {
+          id: 'student_id',
+          type: 'text',
+          content: 'ID: STU-2024-001',
+          position: { x: 85, y: 75 },
+          size: { width: 120, height: 18 },
+          rotation: 0,
+          style: { 
+            fontSize: '12px', 
+            color: '#e5e7eb',
+            fontFamily: 'Arial',
+            textAlign: 'left'
+          },
+          locked: false,
+          visible: true,
+          layer: 4
+        },
+        {
+          id: 'photo',
+          type: 'image',
+          content: '/api/placeholder/80/100',
+          position: { x: 280, y: 40 },
+          size: { width: 80, height: 100 },
+          rotation: 0,
+          style: { 
+            borderRadius: '4px',
+            border: '2px solid white',
+            opacity: 1
+          },
+          locked: false,
+          visible: true,
+          layer: 5
+        },
+        {
+          id: 'department',
+          type: 'text',
+          content: 'Computer Science',
+          position: { x: 15, y: 160 },
+          size: { width: 150, height: 16 },
+          rotation: 0,
+          style: { 
+            fontSize: '11px', 
+            color: '#cbd5e1',
+            fontFamily: 'Arial',
+            textAlign: 'left'
+          },
+          locked: false,
+          visible: true,
+          layer: 6
+        }
+      ]
+    },
+    back: {
+      background: { type: 'solid', color: '#374151' },
+      elements: [
+        {
+          id: 'qr_code',
+          type: 'qr',
+          content: 'https://instipass.com/verify/STU-2024-001',
+          position: { x: 200, y: 60 },
+          size: { width: 80, height: 80 },
+          rotation: 0,
+          style: { backgroundColor: 'white', padding: '4px' },
+          locked: false,
+          visible: true,
+          layer: 1
+        },
+        {
+          id: 'validity_label',
+          type: 'text',
+          content: 'VALID UNTIL',
+          position: { x: 20, y: 120 },
+          size: { width: 100, height: 15 },
+          rotation: 0,
+          style: { 
+            fontSize: '10px', 
+            color: '#9ca3af',
+            fontFamily: 'Arial',
+            textAlign: 'left',
+            fontWeight: 'bold'
+          },
+          locked: false,
+          visible: true,
+          layer: 2
+        },
+        {
+          id: 'validity_date',
+          type: 'text',
+          content: 'DECEMBER 2025',
+          position: { x: 20, y: 140 },
+          size: { width: 120, height: 20 },
+          rotation: 0,
+          style: { 
+            fontSize: '14px', 
+            color: '#ffffff',
+            fontFamily: 'Arial',
+            textAlign: 'left',
+            fontWeight: 'bold'
+          },
+          locked: false,
+          visible: true,
+          layer: 3
+        },
+        {
+          id: 'contact_info',
+          type: 'text',
+          content: 'www.university.edu | +1-555-0123',
+          position: { x: 20, y: 180 },
+          size: { width: 250, height: 12 },
+          rotation: 0,
+          style: { 
+            fontSize: '9px', 
+            color: '#9ca3af',
+            fontFamily: 'Arial',
+            textAlign: 'left'
+          },
+          locked: false,
+          visible: true,
+          layer: 4
+        }
+      ]
+    }
+  });
+
+  // Design tools configuration
+  const tools = [
+    { id: 'select', icon: MousePointer, label: 'Select' },
+    { id: 'text', icon: Type, label: 'Text' },
+    { id: 'rectangle', icon: Square, label: 'Rectangle' },
+    { id: 'circle', icon: Circle, label: 'Circle' },
+    { id: 'image', icon: Image, label: 'Image' },
+    { id: 'qr', icon: QrCode, label: 'QR Code' }
+  ];
+
+  // Convert mm to pixels
+  const mmToPx = (mm) => (mm * 96) / 25.4 * zoom;
+  const cardWidth = mmToPx(template.dimensions.width);
+  const cardHeight = mmToPx(template.dimensions.height);
+
+  const getCurrentSide = () => template[selectedSide];
+  const getSelectedElement = () => 
+    getCurrentSide().elements.find(el => selectedElements.includes(el.id));
+
+  // Element manipulation functions
+  const updateElement = useCallback((elementId, updates) => {
+    setTemplate(prev => ({
+      ...prev,
+      [selectedSide]: {
+        ...prev[selectedSide],
+        elements: prev[selectedSide].elements.map(el => 
+          el.id === elementId ? { ...el, ...updates } : el
+        )
+      }
+    }));
+  }, [selectedSide]);
+
+  const addElement = (type, position = { x: 50, y: 50 }) => {
+    const elementDefaults = {
+      text: {
+        content: 'New Text',
+        size: { width: 120, height: 30 },
+        style: { 
+          fontSize: '14px', 
+          color: '#000000',
+          fontFamily: 'Arial',
+          textAlign: 'left'
+        }
+      },
+      image: {
+        content: '/api/placeholder/100/100',
+        size: { width: 100, height: 100 },
+        style: { borderRadius: '4px' }
+      },
+      rectangle: {
+        content: '',
+        size: { width: 100, height: 60 },
+        style: { 
+          backgroundColor: '#3b82f6',
+          borderRadius: '4px',
+          border: 'none'
+        }
+      },
+      circle: {
+        content: '',
+        size: { width: 80, height: 80 },
+        style: { 
+          backgroundColor: '#ef4444',
+          borderRadius: '50%',
+          border: 'none'
+        }
+      },
+      qr: {
+        content: 'QR Code Data',
+        size: { width: 80, height: 80 },
+        style: { backgroundColor: 'white', padding: '4px' }
+      }
+    };
+
+    const newElement = {
+      id: `${type}_${Date.now()}`,
+      type,
+      position,
+      rotation: 0,
+      locked: false,
+      visible: true,
+      layer: getCurrentSide().elements.length + 1,
+      ...elementDefaults[type]
+    };
+
+    setTemplate(prev => ({
+      ...prev,
+      [selectedSide]: {
+        ...prev[selectedSide],
+        elements: [...prev[selectedSide].elements, newElement]
+      }
+    }));
+
+    setSelectedElements([newElement.id]);
+  };
+
+  const deleteSelectedElements = () => {
+    setTemplate(prev => ({
+      ...prev,
+      [selectedSide]: {
+        ...prev[selectedSide],
+        elements: prev[selectedSide].elements.filter(el => !selectedElements.includes(el.id))
+      }
+    }));
+    setSelectedElements([]);
+  };
+
+  const duplicateSelectedElements = () => {
+    const elementsToDuplicate = getCurrentSide().elements.filter(el => 
+      selectedElements.includes(el.id)
+    );
+
+    const duplicatedElements = elementsToDuplicate.map(el => ({
+      ...el,
+      id: `${el.type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      position: { x: el.position.x + 10, y: el.position.y + 10 },
+      layer: getCurrentSide().elements.length + 1
+    }));
+
+    setTemplate(prev => ({
+      ...prev,
+      [selectedSide]: {
+        ...prev[selectedSide],
+        elements: [...prev[selectedSide].elements, ...duplicatedElements]
+      }
+    }));
+
+    setSelectedElements(duplicatedElements.map(el => el.id));
+  };
+
+  // Canvas event handlers
+  const handleCanvasMouseDown = (e) => {
+    if (tool === 'select') {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / zoom;
+      const y = (e.clientY - rect.top) / zoom;
+      
+      // Check if clicking on an element
+      const clickedElement = getCurrentSide().elements
+        .slice()
+        .reverse()
+        .find(el => 
+          x >= el.position.x && 
+          x <= el.position.x + el.size.width &&
+          y >= el.position.y && 
+          y <= el.position.y + el.size.height &&
+          el.visible && !el.locked
+        );
+
+      if (clickedElement) {
+        if (e.shiftKey) {
+          setSelectedElements(prev => 
+            prev.includes(clickedElement.id) 
+              ? prev.filter(id => id !== clickedElement.id)
+              : [...prev, clickedElement.id]
+          );
+        } else {
+          setSelectedElements([clickedElement.id]);
+        }
+        setDragMode('move');
+        setDragStart({ x, y });
+      } else {
+        setSelectedElements([]);
+        setDragMode('select');
+        setDragStart({ x, y });
+      }
+    } else if (tool !== 'select') {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / zoom;
+      const y = (e.clientY - rect.top) / zoom;
+      addElement(tool, { x, y });
+      setTool('select');
+    }
+  };
+
+  const handleCanvasMouseMove = (e) => {
+    if (!dragMode || !dragStart) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const currentX = (e.clientX - rect.left) / zoom;
+    const currentY = (e.clientY - rect.top) / zoom;
+    const deltaX = currentX - dragStart.x;
+    const deltaY = currentY - dragStart.y;
+
+    if (dragMode === 'move' && selectedElements.length > 0) {
+      selectedElements.forEach(elementId => {
+        const element = getCurrentSide().elements.find(el => el.id === elementId);
+        if (element && !element.locked) {
+          updateElement(elementId, {
+            position: {
+              x: Math.max(0, Math.min(cardWidth - element.size.width, element.position.x + deltaX)),
+              y: Math.max(0, Math.min(cardHeight - element.size.height, element.position.y + deltaY))
+            }
+          });
+        }
+      });
+      setDragStart({ x: currentX, y: currentY });
+    }
+  };
+
+  const handleCanvasMouseUp = () => {
+    setDragMode(null);
+    setDragStart(null);
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 'c':
+            e.preventDefault();
+            setClipboard(selectedElements.map(id => 
+              getCurrentSide().elements.find(el => el.id === id)
+            ).filter(Boolean));
+            break;
+          case 'v':
+            e.preventDefault();
+            if (clipboard.length > 0) {
+              const pastedElements = clipboard.map(el => ({
+                ...el,
+                id: `${el.type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                position: { x: el.position.x + 10, y: el.position.y + 10 }
+              }));
+              
+              setTemplate(prev => ({
+                ...prev,
+                [selectedSide]: {
+                  ...prev[selectedSide],
+                  elements: [...prev[selectedSide].elements, ...pastedElements]
+                }
+              }));
+              
+              setSelectedElements(pastedElements.map(el => el.id));
+            }
+            break;
+          case 'd':
+            e.preventDefault();
+            duplicateSelectedElements();
+            break;
+        }
+      }
+      
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        deleteSelectedElements();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedElements, clipboard, selectedSide]);
+
+  // Alignment functions
+  const alignElements = (alignment) => {
+    if (selectedElements.length < 2) return;
+    
+    const elements = selectedElements.map(id => 
+      getCurrentSide().elements.find(el => el.id === id)
+    );
+    
+    switch (alignment) {
+      case 'left':
+        const leftMost = Math.min(...elements.map(el => el.position.x));
+        elements.forEach(el => updateElement(el.id, { position: { ...el.position, x: leftMost } }));
+        break;
+      case 'center':
+        const centerX = elements.reduce((sum, el) => sum + el.position.x + el.size.width / 2, 0) / elements.length;
+        elements.forEach(el => updateElement(el.id, { 
+          position: { ...el.position, x: centerX - el.size.width / 2 } 
+        }));
+        break;
+      case 'right':
+        const rightMost = Math.max(...elements.map(el => el.position.x + el.size.width));
+        elements.forEach(el => updateElement(el.id, { 
+          position: { ...el.position, x: rightMost - el.size.width } 
+        }));
+        break;
+    }
+  };
+
+  const renderElement = (element) => {
+    const isSelected = selectedElements.includes(element.id);
+    if (!element.visible) return null;
+
+    const baseStyle = {
+      position: 'absolute',
+      left: element.position.x * zoom,
+      top: element.position.y * zoom,
+      width: element.size.width * zoom,
+      height: element.size.height * zoom,
+      transform: `rotate(${element.rotation}deg)`,
+      cursor: tool === 'select' ? (element.locked ? 'not-allowed' : 'move') : 'crosshair',
+      border: isSelected ? '2px solid #3b82f6' : element.locked ? '1px dashed #ef4444' : 'none',
+      outline: isSelected ? '1px solid white' : 'none',
+      outlineOffset: isSelected ? '2px' : '0',
+      ...element.style,
+      fontSize: element.style.fontSize ? `${parseInt(element.style.fontSize) * zoom}px` : undefined
+    };
+
+    const ElementWrapper = ({ children }) => (
+      <div style={baseStyle}>
+        {children}
+        {isSelected && !element.locked && (
+          <>
+            {/* Resize handles */}
+            <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 border border-white cursor-nw-resize" />
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 border border-white cursor-ne-resize" />
+            <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 border border-white cursor-sw-resize" />
+            <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 border border-white cursor-se-resize" />
+            {/* Rotation handle */}
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-2 h-2 bg-green-500 border border-white cursor-grab rounded-full" />
+          </>
+        )}
+      </div>
+    );
+
+    switch (element.type) {
+      case 'text':
+        return (
+          <ElementWrapper key={element.id}>
+            <div 
+              className="w-full h-full flex items-center"
+              style={{ 
+                textAlign: element.style.textAlign,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden'
+              }}
+            >
+              {element.content}
+            </div>
+          </ElementWrapper>
+        );
+      case 'image':
+        return (
+          <ElementWrapper key={element.id}>
+            <img
+              src={element.content}
+              alt="ID Element"
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          </ElementWrapper>
+        );
+      case 'rectangle':
+      case 'circle':
+        return (
+          <ElementWrapper key={element.id}>
+            <div className="w-full h-full" />
+          </ElementWrapper>
+        );
+      case 'qr':
+        return (
+          <ElementWrapper key={element.id}>
+            <div className="w-full h-full flex items-center justify-center text-xs">
+              <QrCode size={Math.min(element.size.width * zoom * 0.6, 40)} />
+            </div>
+          </ElementWrapper>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const selectedElement = getSelectedElement();
+
+  return (
+    <div className="h-screen bg-gray-100 flex flex-col">
+      {/* Top Toolbar */}
+      <div className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-semibold">ID Template Designer</h1>
+          
+          {/* Tools */}
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            {tools.map(({ id, icon: Icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setTool(id)}
+                className={`p-2 rounded ${
+                  tool === id ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'
+                }`}
+                title={label}
+              >
+                <Icon size={16} />
+              </button>
+            ))}
+          </div>
+
+          {/* Alignment Tools */}
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => alignElements('left')}
+              className="p-2 hover:bg-gray-200 rounded"
+              title="Align Left"
+              disabled={selectedElements.length < 2}
+            >
+              <AlignLeft size={16} />
+            </button>
+            <button
+              onClick={() => alignElements('center')}
+              className="p-2 hover:bg-gray-200 rounded"
+              title="Align Center"
+              disabled={selectedElements.length < 2}
+            >
+              <AlignCenter size={16} />
+            </button>
+            <button
+              onClick={() => alignElements('right')}
+              className="p-2 hover:bg-gray-200 rounded"
+              title="Align Right"
+              disabled={selectedElements.length < 2}
+            >
+              <AlignRight size={16} />
+            </button>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={duplicateSelectedElements}
+              className="p-2 hover:bg-gray-200 rounded"
+              title="Duplicate (Ctrl+D)"
+              disabled={selectedElements.length === 0}
+            >
+              <Copy size={16} />
+            </button>
+            <button
+              onClick={deleteSelectedElements}
+              className="p-2 hover:bg-gray-200 rounded text-red-600"
+              title="Delete"
+              disabled={selectedElements.length === 0}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          {/* View Controls */}
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setShowGrid(!showGrid)}
+              className={`p-2 rounded ${showGrid ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
+              title="Toggle Grid"
+            >
+              <Grid size={16} />
+            </button>
+            <button
+              onClick={() => setShowRuler(!showRuler)}
+              className={`p-2 rounded ${showRuler ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
+              title="Toggle Ruler"
+            >
+              <Ruler size={16} />
+            </button>
+          </div>
+
+          {/* Zoom Controls */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
+              className="p-1 hover:bg-gray-200 rounded"
+            >
+              <ZoomOut size={16} />
+            </button>
+            <span className="text-sm font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
+            <button
+              onClick={() => setZoom(Math.min(3, zoom + 0.25))}
+              className="p-1 hover:bg-gray-200 rounded"
+            >
+              <ZoomIn size={16} />
+            </button>
+          </div>
+
+          {/* Side Toggle */}
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setSelectedSide('front')}
+              className={`px-3 py-1 rounded ${
+                selectedSide === 'front' ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'
+              }`}
+            >
+              Front
+            </button>
+            <button
+              onClick={() => setSelectedSide('back')}
+              className={`px-3 py-1 rounded ${
+                selectedSide === 'back' ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'
+              }`}
+            >
+              Back
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsFlipped(!isFlipped)}
+            className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
+          >
+            <RotateCw size={16} />
+            Flip 3D
+          </button>
+
+          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <Save size={16} />
+            Save
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex">
+        {/* Left Sidebar - Layers & Properties */}
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+          {/* Layers Panel */}
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Layers size={16} />
+              Layers
+            </h3>
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {getCurrentSide().elements
+                .slice()
+                .sort((a, b) => b.layer - a.layer)
+                .map(element => (
+                  <div
+                    key={element.id}
+                    onClick={() => setSelectedElements([element.id])}
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer ${
+                      selectedElements.includes(element.id) ? 'bg-blue-100' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      {element.visible ? <Eye size={12} /> : <EyeOff size={12} />}
+                      {element.locked && <Lock size={12} />}
+                    </div>
+                    <span className="text-sm truncate flex-1">
+                      {element.content || `${element.type}_${element.id.split('_').pop()}`}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          {/* Properties Panel */}
+          {selectedElement && (
+            <div className="flex-1 p-4 overflow-y-auto">
+              <h3 className="font-semibold mb-3">Properties</h3>
+              
+              <div className="space-y-4">
+                {/* Basic Properties */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Content</label>
+                  {selectedElement.type === 'text' ? (
+                    <textarea
+                      value={selectedElement.content}
+                      onChange={(e) => updateElement(selectedElement.id, { content: e.target.value })}
+                      className="w-full p-2 border rounded text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Height</label>
+                    <input
+                      type="number"
+                      value={Math.round(selectedElement.size.height)}
+                      onChange={(e) => updateElement(selectedElement.id, {
+                        size: { ...selectedElement.size, height: parseInt(e.target.value) || 1 }
+                      })}
+                      className="w-full p-2 border rounded text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Rotation */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Rotation</label>
+                  <input
+                    type="range"
+                    min="-180"
+                    max="180"
+                    value={selectedElement.rotation}
+                    onChange={(e) => updateElement(selectedElement.id, { rotation: parseInt(e.target.value) })}
+                    className="w-full"
+                  />
+                  <span className="text-xs text-gray-500">{selectedElement.rotation}°</span>
+                </div>
+
+                {/* Text-specific properties */}
+                {selectedElement.type === 'text' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Font Size</label>
+                      <input
+                        type="range"
+                        min="8"
+                        max="48"
+                        value={parseInt(selectedElement.style.fontSize)}
+                        onChange={(e) => updateElement(selectedElement.id, {
+                          style: { ...selectedElement.style, fontSize: `${e.target.value}px` }
+                        })}
+                        className="w-full"
+                      />
+                      <span className="text-xs text-gray-500">{selectedElement.style.fontSize}</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Font Family</label>
+                      <select
+                        value={selectedElement.style.fontFamily}
+                        onChange={(e) => updateElement(selectedElement.id, {
+                          style: { ...selectedElement.style, fontFamily: e.target.value }
+                        })}
+                        className="w-full p-2 border rounded text-sm"
+                      >
+                        <option value="Arial">Arial</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier New</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Text Align</label>
+                      <div className="flex gap-1">
+                        {['left', 'center', 'right', 'justify'].map(align => (
+                          <button
+                            key={align}
+                            onClick={() => updateElement(selectedElement.id, {
+                              style: { ...selectedElement.style, textAlign: align }
+                            })}
+                            className={`p-2 border rounded ${
+                              selectedElement.style.textAlign === align ? 'bg-blue-500 text-white' : 'bg-white'
+                            }`}
+                          >
+                            {align === 'left' && <AlignLeft size={14} />}
+                            {align === 'center' && <AlignCenter size={14} />}
+                            {align === 'right' && <AlignRight size={14} />}
+                            {align === 'justify' && <AlignJustify size={14} />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Text Color</label>
+                      <input
+                        type="color"
+                        value={selectedElement.style.color}
+                        onChange={(e) => updateElement(selectedElement.id, {
+                          style: { ...selectedElement.style, color: e.target.value }
+                        })}
+                        className="w-full h-10 border rounded"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Font Weight</label>
+                      <select
+                        value={selectedElement.style.fontWeight || 'normal'}
+                        onChange={(e) => updateElement(selectedElement.id, {
+                          style: { ...selectedElement.style, fontWeight: e.target.value }
+                        })}
+                        className="w-full p-2 border rounded text-sm"
+                      >
+                        <option value="normal">Normal</option>
+                        <option value="bold">Bold</option>
+                        <option value="lighter">Light</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {/* Shape-specific properties */}
+                {(selectedElement.type === 'rectangle' || selectedElement.type === 'circle') && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Background Color</label>
+                      <input
+                        type="color"
+                        value={selectedElement.style.backgroundColor}
+                        onChange={(e) => updateElement(selectedElement.id, {
+                          style: { ...selectedElement.style, backgroundColor: e.target.value }
+                        })}
+                        className="w-full h-10 border rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Border Radius</label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="50"
+                        value={parseInt(selectedElement.style.borderRadius) || 0}
+                        onChange={(e) => updateElement(selectedElement.id, {
+                          style: { ...selectedElement.style, borderRadius: `${e.target.value}px` }
+                        })}
+                        className="w-full"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Common style properties */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Opacity</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={selectedElement.style.opacity || 1}
+                    onChange={(e) => updateElement(selectedElement.id, {
+                      style: { ...selectedElement.style, opacity: parseFloat(e.target.value) }
+                    })}
+                    className="w-full"
+                  />
+                  <span className="text-xs text-gray-500">{Math.round((selectedElement.style.opacity || 1) * 100)}%</span>
+                </div>
+
+                {/* Element Controls */}
+                <div className="flex gap-2 pt-4 border-t">
+                  <button
+                    onClick={() => updateElement(selectedElement.id, { visible: !selectedElement.visible })}
+                    className={`flex-1 p-2 rounded text-sm ${
+                      selectedElement.visible ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {selectedElement.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+                  </button>
+                  <button
+                    onClick={() => updateElement(selectedElement.id, { locked: !selectedElement.locked })}
+                    className={`flex-1 p-2 rounded text-sm ${
+                      selectedElement.locked ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {selectedElement.locked ? <Lock size={14} /> : <Unlock size={14} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Main Canvas Area */}
+        <div className="flex-1 bg-gray-50 flex flex-col">
+          {/* Ruler */}
+          {showRuler && (
+            <div className="bg-white border-b border-gray-200">
+              <div className="h-6 border-b border-gray-300 relative">
+                {/* Horizontal ruler marks */}
+                {Array.from({ length: Math.ceil(cardWidth / 10) }, (_, i) => (
+                  <div
+                    key={i}
+                    className="absolute border-l border-gray-400"
+                    style={{
+                      left: `${50 + i * 10 * zoom}px`,
+                      height: i % 5 === 0 ? '100%' : '50%',
+                      top: i % 5 === 0 ? '0' : '50%'
+                    }}
+                  >
+                    {i % 10 === 0 && (
+                      <span className="absolute -top-4 -left-2 text-xs text-gray-600">
+                        {i * 10}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Canvas Container */}
+          <div className="flex-1 overflow-auto p-12">
+            <div className="flex justify-center">
+              <div 
+                className="relative"
+                style={{ 
+                  perspective: '1000px',
+                  width: cardWidth + 40,
+                  height: cardHeight + 40
+                }}
+              >
+                {/* 3D Card Container */}
+                <div
+                  className="relative transition-transform duration-500"
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    width: cardWidth,
+                    height: cardHeight,
+                    margin: '20px'
+                  }}
+                >
+                  {/* Front Side */}
+                  <div
+                    ref={selectedSide === 'front' ? canvasRef : null}
+                    className="absolute inset-0 rounded-lg shadow-xl cursor-crosshair"
+                    style={{
+                      backgroundColor: template.front.background.color,
+                      width: cardWidth,
+                      height: cardHeight,
+                      backfaceVisibility: 'hidden',
+                      backgroundImage: showGrid ? `
+                        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
+                      ` : 'none',
+                      backgroundSize: showGrid ? `${10 * zoom}px ${10 * zoom}px` : 'auto'
+                    }}
+                    onMouseDown={handleCanvasMouseDown}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseUp={handleCanvasMouseUp}
+                  >
+                    {selectedSide === 'front' && template.front.elements.map(renderElement)}
+                  </div>
+
+                  {/* Back Side */}
+                  <div
+                    ref={selectedSide === 'back' ? canvasRef : null}
+                    className="absolute inset-0 rounded-lg shadow-xl cursor-crosshair"
+                    style={{
+                      backgroundColor: template.back.background.color,
+                      width: cardWidth,
+                      height: cardHeight,
+                      transform: 'rotateY(180deg)',
+                      backfaceVisibility: 'hidden',
+                      backgroundImage: showGrid ? `
+                        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
+                      ` : 'none',
+                      backgroundSize: showGrid ? `${10 * zoom}px ${10 * zoom}px` : 'auto'
+                    }}
+                    onMouseDown={handleCanvasMouseDown}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseUp={handleCanvasMouseUp}
+                  >
+                    {selectedSide === 'back' && template.back.elements.map(renderElement)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FigmaIDDesigner; p-2 border rounded text-sm"
+                      rows={2}
+                    />
+                  ) : selectedElement.type === 'image' ? (
+                    <input
+                      type="url"
+                      value={selectedElement.content}
+                      onChange={(e) => updateElement(selectedElement.id, { content: e.target.value })}
+                      className="w-full p-2 border rounded text-sm"
+                      placeholder="Image URL"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={selectedElement.content}
+                      onChange={(e) => updateElement(selectedElement.id, { content: e.target.value })}
+                      className="w-full p-2 border rounded text-sm"
+                    />
+                  )}
+                </div>
+
+                {/* Position & Size */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">X</label>
+                    <input
+                      type="number"
+                      value={Math.round(selectedElement.position.x)}
+                      onChange={(e) => updateElement(selectedElement.id, {
+                        position: { ...selectedElement.position, x: parseInt(e.target.value) || 0 }
+                      })}
+                      className="w-full p-2 border rounded text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Y</label>
+                    <input
+                      type="number"
+                      value={Math.round(selectedElement.position.y)}
+                      onChange={(e) => updateElement(selectedElement.id, {
+                        position: { ...selectedElement.position, y: parseInt(e.target.value) || 0 }
+                      })}
+                      className="w-full p-2 border rounded text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Width</label>
+                    <input
+                      type="number"
+                      value={Math.round(selectedElement.size.width)}
+                      onChange={(e) => updateElement(selectedElement.id, {
+                        size: { ...selectedElement.size, width: parseInt(e.target.value) || 1 }
+                      })}
+                      className="w-full

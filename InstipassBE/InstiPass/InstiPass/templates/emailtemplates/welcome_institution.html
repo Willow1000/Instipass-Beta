@@ -1,0 +1,80 @@
+{% extends "base_email.html" %}
+
+{% block title %}Welcome to InstiPass - Institution{% endblock %}
+
+{% block header %}
+<img src="https://via.placeholder.com/150x60?text=InstiPass" alt="InstiPass Logo" class="email-logo">
+<h1>Welcome to InstiPass</h1>
+{% endblock %}
+
+{% block content %}
+<h2>Hello {{ username }},</h2>
+
+<p>Thank you for registering your institution with InstiPass! We're excited to welcome you to our platform.</p>
+
+<div class="update-container">
+    <div style="font-size: 48px; margin-bottom: 15px;">🏫</div>
+    <h3>Your Institution Account is Ready</h3>
+    <p>Your account has been successfully created and is ready to use.</p>
+</div>
+
+<div class="action-buttons">
+    <a href="{{ login_url }}" class="cta-button">Log In to Your Institution Dashboard</a>
+</div>
+
+<div class="divider"></div>
+
+<h3>What's Next?</h3>
+<p>Complete your institution profile to get the most out of InstiPass:</p>
+
+<div style="background-color: #f5f5f5; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <div style="display: flex; align-items: flex-start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+        <div style="margin-right: 15px; color: #2A9D8F; font-size: 20px; min-width: 24px; text-align: center;">📝</div>
+        <div>
+            <strong>Update your institution information</strong>
+            <p>Ensure your institution details are accurate and complete.</p>
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: flex-start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+        <div style="margin-right: 15px; color: #2A9D8F; font-size: 20px; min-width: 24px; text-align: center;">🖼️</div>
+        <div>
+            <strong>Upload your institution logo</strong>
+            <p>Add your official logo to personalize your account.</p>
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: flex-start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+        <div style="margin-right: 15px; color: #2A9D8F; font-size: 20px; min-width: 24px; text-align: center;">✅</div>
+        <div>
+            <strong>Set up your verification processes</strong>
+            <p>Configure how students will be verified with your institution.</p>
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: flex-start;">
+        <div style="margin-right: 15px; color: #2A9D8F; font-size: 20px; min-width: 24px; text-align: center;">🎫</div>
+        <div>
+            <strong>Create your first pass templates</strong>
+            <p>Design digital passes for your students and staff.</p>
+        </div>
+    </div>
+</div>
+
+<div class="security-notice">
+    <h4>Security Notice</h4>
+    <p>For your security, please verify your email address by clicking the login button above. If you did not create this account, please contact our support team immediately.</p>
+</div>
+
+<p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+
+<p>Best regards,<br>
+The InstiPass Team</p>
+{% endblock %}
+
+{% block extra_styles %}
+.update-container {
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+}
+{% endblock %}
