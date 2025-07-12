@@ -16,7 +16,7 @@ const NewsletterSignup = ({ darkMode }) => {
   const sendNewsletterSignupToAPI = async (emailData) => {
     
     try {
-      const response = await fetch("http://127.0.0.1:8000/super/api/newsletter/", {
+      const response = await fetch("http://127.0.0.1:8000/institution/api/newsletter/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,7 +31,7 @@ const NewsletterSignup = ({ darkMode }) => {
       try {
         data = await response.json();
       } catch (parseError) {
-        console.error('Error parsing response:', parseError);
+        
         throw new Error('Server returned an invalid response. Please try again later.');
       }
       
@@ -109,7 +109,7 @@ const NewsletterSignup = ({ darkMode }) => {
       
     } catch (error) {
       // Handle submission error
-      console.error('Newsletter subscription error:', error);
+      
       setSubmissionStatus('error');
       setSubmissionMessage(error.message || 'An error occurred while subscribing. Please try again.');
       

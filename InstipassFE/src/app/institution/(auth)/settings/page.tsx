@@ -278,7 +278,7 @@ const InstitutionSettingsForm = () => {
         // Handle response based on status code
         if (response.ok) {
           const data = await response.json();
-          console.log('Success:', data);
+       
           setSubmitStatus('success');
           
           // Reset form after successful submission
@@ -333,7 +333,6 @@ const InstitutionSettingsForm = () => {
           }
         }
       } catch (error) {
-        console.error('Error:', error);
         setSubmitStatus('error');
         setErrorMessage(error.message || 'Failed to submit form. Please try again.');
       } finally {

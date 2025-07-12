@@ -69,6 +69,15 @@
                 <div class="text-muted small">
                   <strong>Characters:</strong> {{ message.message|length }}
                 </div>
+                
+              </div>
+              <div class="mt-5">
+                <a href="{% url 'delete_contactus'  message.id %}">
+                  <button class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </a>
+                
               </div>
             </div>
           </div>

@@ -56,19 +56,15 @@ const AboutNavbar = () => {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-all duration-300 mb-3 pb-10${
-        darkMode 
-          ? scrolled ? 'bg-gray-800/95 backdrop-blur-sm' : 'bg-gray-800' 
-          : scrolled ? 'bg-white/95 backdrop-blur-sm' : 'bg-white'
-      } ${scrolled ? 'shadow-lg' : 'shadow-md'} text-${darkMode ? 'white' : 'gray-900'}`}
-      style={{ position: 'fixed', width: '100%' }}
+      className={`fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-all duration-300 
+       ${scrolled ? 'shadow-lg' : 'shadow-md'} text-${darkMode ? 'white'  : 'gray-900'} ${darkMode? '': 'bg-[#1D3557]'}`}
     >
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full bg-[#1D3557] text-white flex items-center justify-center mr-3">
             <CreditCard size={20} />
           </div>
-          <span className="text-xl font-bold text-[#1D3557] dark:text-white">Instipass</span>
+          <Link href="/"><span className="text-xl font-bold text-[#1D3557] dark:text-white">Instipass</span></Link>
         </div>
         
         {/* Desktop Navigation */}
@@ -104,7 +100,7 @@ const AboutNavbar = () => {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="flex md:hidden items-center space-x-4">
+        <div className="flex md:hidden items-center space-x-4 ">
           <button 
             onClick={toggleDarkMode}
             className={`p-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}

@@ -7,11 +7,11 @@ from .forms import LoginForm
 from django.shortcuts import redirect
 from institution.models import *
 import requests
-from rest_framework import viewsets
+from rest_framework import viewsets,status
 from student.models import *
 from django.shortcuts import get_object_or_404
 import json
-from .models import ContactUs,NewsLetter,DemoBooking
+from .models import ContactUsTracker,DemoBookingTracker
 from django.contrib import messages
 from logs.models import APIAccessLog,AdminActionsLog
 from .serializers import *
@@ -21,8 +21,10 @@ from accounts.models import InstitutionSignupToken, SignupTracker
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
-
-
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from django.views.decorators.csrf import ensure_csrf_cookie
+from institution.views import get_client_ip
 
 
 # Create your views here.
@@ -188,7 +190,7 @@ def clear_apiaccess_logs(request):
             action = "CLEAR",
             admin = request.user,
             victim_type = "APIACCESSLOGS",
-            victim = "ALL APIACCESSLOGS"
+            victim = f"{deleted_count} APIACCESSLOGS"
 
         )
         return redirect(referer)
@@ -208,7 +210,7 @@ def clear_messages(request):
             action = "CLEAR",
             admin = request.user,
             victim_type = "MESSAGES",
-            victim = "ALL MESSAGES"
+            victim = f"{deleted_count} MESSAGES"
 
         )
         return redirect(referer)
@@ -226,7 +228,7 @@ def clear_student_reg_tracker(request):
             action = "CLEAR",
             admin = request.user,
             victim_type = "STUDENTTRACKERLOGS",
-            victim = "ALL STUDENTTRACKERLOGS"
+            victim = f"{deleted_count} STUDENTTRACKERLOGS"
 
         )
         return redirect(referer)
@@ -244,7 +246,7 @@ def clear_institution_reg_tracker(request):
             action = "CLEAR",
             admin = request.user,
             victim_type = "INSTITUTIONTRACKERLOGS",
-            victim = "ALL INSTITUTIONTRACKERLOGS"
+            victim = f"{deleted_count} INSTITUTIONTRACKERLOGS"
 
         )
         return redirect(referer)
@@ -262,7 +264,7 @@ def clear_institution_signup_token(request):
             action = "CLEAR",
             admin = request.user,
             victim_type = "INSTITUTIONSIGNUPTOKENS",
-            victim = "ALL INSTITUTIONSIGNUPTOKENS"
+            victim = f"{deleted_count} INSTITUTIONSIGNUPTOKENS"
 
         )
         return redirect(referer)
@@ -280,14 +282,14 @@ def clear_demobooking(request):
             action = "CLEAR",
             admin = request.user,
             victim_type = "DEMOBOOKINGS",
-            victim = "ALL DEMOBOOKINGS"
+            victim = f"{deleted_count} DEMOBOOKINGS"
 
         )
         return redirect(referer)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)   
 
-login_required
+@login_required
 @user_passes_test(lambda u: u.is_superuser)
 def clear_signuptracker(request):
     try:
@@ -298,20 +300,52 @@ def clear_signuptracker(request):
             action = "CLEAR",
             admin = request.user,
             victim_type = "SIGNUPTRACKER",
-            victim = "ALL SIGNUPTRACKERLOGS"
+            victim = f"{deleted_count} SIGNUPTRACKERLOGS"
 
         )
         return redirect(referer)
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)                                         
+        return JsonResponse({"error": str(e)}, status=500)          
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def clear_demobookingtracker(request):
+    try:
+        deleted_count, _ = DemoBookingTracker.objects.all().delete()
+        messages.success(request, f"Deleted {deleted_count} demobookingtracker records.")
+        referer = request.META.get('HTTP_REFERER') or '/'
+        AdminActionsLog.objects.create(
+            action = "CLEAR",
+            admin = request.user,
+            victim_type = "DEMOBOKINGTRACKER",
+            victim = f"{deleted_count} DEMOBBOKINGTRACKERLOGS"
+
+        )
+        return redirect(referer)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)  
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def clear_contactustracker(request):
+    try:
+        deleted_count, _ = ContactUsTracker.objects.all().delete()
+        messages.success(request, f"Deleted {deleted_count} contactustracker records.")
+        referer = request.META.get('HTTP_REFERER') or '/'
+        AdminActionsLog.objects.create(
+            action = "CLEAR",
+            admin = request.user,
+            victim_type = "CONTACTUSTRACKER",
+            victim = f"{deleted_count} CONTACTUSTRACKERLOGS"
+
+        )
+        return redirect(referer)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)                                                         
 
 
 
-class NotificationsViewSet(viewsets.ModelViewSet):
-    queryset = ContactUs.objects.all()
-    serializer_class = ContactUsSerializer
-    http_method_names = ['post']
-   
+
 
 
 class ContactUsView(LoginRequiredMixin,UserPassesTestMixin,ListView):
@@ -325,22 +359,15 @@ class ContactUsView(LoginRequiredMixin,UserPassesTestMixin,ListView):
 
 class DetailContactUsView(LoginRequiredMixin,UserPassesTestMixin,DetailView):
     model = ContactUs
-    template = "administrator/contactus_detail.html"
+    template_name = "administrator/contactus_detail.html"
     context_object_name = 'message'
     login_url = reverse_lazy('adminLogin')   
 
     def test_func(self):
        return self.request.user.is_superuser
 
-class NewsLetterViewSet(viewsets.ModelViewSet):
-    queryset = NewsLetter.objects.all()
-    serializer_class = NewsLetterSerializer
-    http_method_names = ['post']
 
-class DemoBookingViewSet(viewsets.ModelViewSet):
-    queryset = DemoBooking.objects.all()
-    serializer_class = DemoBookingSerializer
-    http_method_names=['post','get']
+
 
 class RegistrationTrackerView(ListView,LoginRequiredMixin,UserPassesTestMixin):
     template_name = 'administrator/admin_institution_registration_tracker.html'
@@ -424,3 +451,29 @@ class SignupTrackerView(LoginRequiredMixin,UserPassesTestMixin,ListView):
 
     def test_func(self):
         return self.request.user.is_superuser    
+
+
+class DemoBookingTrackerView(LoginRequiredMixin,UserPassesTestMixin,ListView):
+    template_name = 'administrator/admin_demobooking_tracker.html'
+    model = DemoBookingTracker
+    context_object_name = 'trackers'
+    login_url = reverse_lazy('adminLOgin')    
+    def test_func(self):
+       return self.request.user.is_superuser  
+
+class ContactUsTrackerView(LoginRequiredMixin,UserPassesTestMixin,ListView):
+    template_name = 'administrator/admin_contactus_tracker.html'
+    model = ContactUsTracker
+    context_object_name = 'trackers'
+    login_url = reverse_lazy('adminLogin')    
+    def test_func(self):
+       return self.request.user.is_superuser        
+
+
+class DelteContactUsView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
+    model = ContactUs
+    success_url = reverse_lazy("admin_contactus")
+    login_url = reverse_lazy("adminLogin")
+
+    def test_func(self):
+        return self.request.user.is_superuser

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Calendar, Clock, Users, ArrowRight } from 'lucide-react';
+import { Calendar, ArrowRight, AlertCircle } from 'lucide-react';
 
 // Updated component to accept onClose prop and properly handle state
 const BookDemoModal = ({ darkMode, onClose }) => {
@@ -17,7 +17,8 @@ const BookDemoModal = ({ darkMode, onClose }) => {
     institution: '',
     size: '',
     date: '',
-    time: ''
+    time: '',
+    fingerprint: null // Added fingerprint field
   });
   const [formErrors, setFormErrors] = useState({
     name: '',
@@ -29,6 +30,8 @@ const BookDemoModal = ({ darkMode, onClose }) => {
     time: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isRejected, setIsRejected] = useState(false)
+  const [errorMessage,setErrorMessage] = useState('')
   
   // Client-side only date calculation
   const [minDate, setMinDate] = useState('');
@@ -38,6 +41,58 @@ const BookDemoModal = ({ darkMode, onClose }) => {
     setMinDate(new Date().toISOString().split('T')[0]);
   }, []);
   
+  const fingerprintScriptLoaded = useRef(false); // Track if fingerprint script is loaded
+
+  // Load FingerprintJS and generate fingerprint
+  useEffect(() => {
+    const loadFingerprintJS = () => {
+      if (fingerprintScriptLoaded.current) return;
+      
+      // Create script element
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js';
+      script.async = true;
+      
+      script.onload = async () => {
+        fingerprintScriptLoaded.current = true;
+        try {
+          // Initialize FingerprintJS
+          const FingerprintJS = window.FingerprintJS;
+          const fp = await FingerprintJS.load();
+          const result = await fp.get();
+          
+          // Update form data with fingerprint
+          setFormData(prevData => ({
+            ...prevData,
+            fingerprint: result.visitorId
+          }));
+          
+        } catch (error) {
+          throw new Error(error);
+        }
+      };
+      
+      script.onerror = () => {
+        
+      };
+      
+      // Add script to document
+      document.head.appendChild(script);
+    };
+    
+    loadFingerprintJS();
+    
+    // Cleanup function
+    return () => {
+      if (fingerprintScriptLoaded.current) {
+        const script = document.querySelector('script[src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"]');
+        if (script) {
+          document.head.removeChild(script);
+        }
+      }
+    };
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -110,17 +165,29 @@ const BookDemoModal = ({ darkMode, onClose }) => {
     
     try {
       // Send data to the specified API endpoint
-      const response = await fetch('http://127.0.0.1:8000/super/api/bookdemo/', {
+      const response = await fetch('http://127.0.0.1:8000/institution/api/bookdemo/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          fingerprint: formData.fingerprint // Added fingerprint to dataToSend
+        }),
       });
       
       if (!response.ok) {
-        console.log(formData)
-        throw new Error('Failed to submit booking');
+        setIsRejected(true)
+        if (response.status === 403){
+          setErrorMessage('Too many attempts')
+        }else if(response.status === 500){
+          setErrorMessage('An Error occured please try again later')
+        }else{
+          setErrorMessage('An occurred try again later.')
+        }
+        
+       
+
       }
       
       // Handle successful submission
@@ -136,11 +203,12 @@ const BookDemoModal = ({ darkMode, onClose }) => {
           institution: '',
           size: '',
           date: '',
-          time: ''
+          time: '',
+          fingerprint: formData.fingerprint // Keep the fingerprint
         });
       }, 3000);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      // setIsRejected(true)
       setIsSubmitted(false);
       // Could add error state and display to user
     }
@@ -254,7 +322,21 @@ const BookDemoModal = ({ darkMode, onClose }) => {
               </svg>
             </button>
             
-            {isSubmitted ? (
+            {isRejected ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-6 rounded-lg  bg-red-500 `}
+              >
+                <div className="flex items-center mb-4">
+                
+                    <AlertCircle size={24} className="mr-2" />
+                  <h4 className="font-bold">Error !!</h4>
+                </div>
+                <p>{errorMessage}</p>
+              </motion.div>
+            ):
+            (isSubmitted ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -305,6 +387,9 @@ const BookDemoModal = ({ darkMode, onClose }) => {
                 </div>
                 
                 <form onSubmit={handleSubmit}>
+                  {/* Hidden fingerprint field */}
+                  <input type="hidden" name="fingerprint" id="fp-field" value={formData.fingerprint || ''} />
+
                   {/* Step 1: Personal Info */}
                   {step === 1 && (
                     <motion.div
@@ -432,37 +517,33 @@ const BookDemoModal = ({ darkMode, onClose }) => {
                           } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
                         >
                           <option value="">Select size</option>
-                          <option value="small">Small (Under 1,000 students)</option>
-                          <option value="medium">Medium (1,000-5,000 students)</option>
-                          <option value="large">Large (5,000-15,000 students)</option>
-                          <option value="xlarge">Very Large (15,000+ students)</option>
+                          <option value="S">50-200</option>
+                          <option value="M">201-1000 students</option>
+                          <option value="L">1001-4000 students</option>
+                          <option value="XL">4001-6000 students</option>
+                          <option value="XXL">6000+ students</option>
                         </select>
                         {formErrors.size && (
                           <p className="mt-1 text-sm text-red-500">{formErrors.size}</p>
                         )}
                       </div>
                       
-                      <div className="flex space-x-4">
+                      <div className="flex justify-between">
                         <motion.button
                           type="button"
                           onClick={prevStep}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`w-1/2 py-3 px-4 rounded-lg font-medium transition-colors border ${
-                            darkMode 
-                              ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                              : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className="py-3 px-6 bg-gray-300 text-gray-800 rounded-lg font-medium hover:bg-gray-400 transition-colors"
                         >
                           Back
                         </motion.button>
-                        
                         <motion.button
                           type="button"
                           onClick={nextStep}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="w-1/2 py-3 px-4 bg-[#2A9D8F] text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center"
+                          className="py-3 px-6 bg-[#2A9D8F] text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center"
                         >
                           <span>Next</span>
                           <ArrowRight size={16} className="ml-2" />
@@ -471,7 +552,7 @@ const BookDemoModal = ({ darkMode, onClose }) => {
                     </motion.div>
                   )}
                   
-                  {/* Step 3: Schedule */}
+                  {/* Step 3: Schedule Demo */}
                   {step === 3 && (
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
@@ -480,23 +561,20 @@ const BookDemoModal = ({ darkMode, onClose }) => {
                     >
                       <div className="mb-4">
                         <label htmlFor="date" className="block text-sm font-medium mb-2">Preferred Date</label>
-                        <div className={`relative flex items-center`}>
-                          <Calendar className={`absolute left-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-                          <input
-                            type="date"
-                            id="date"
-                            name="date"
-                            min={minDate}
-                            value={formData.date}
-                            onChange={handleChange}
-                            required
-                            className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                              darkMode 
-                                ? 'bg-gray-700 border-gray-600 text-white focus:border-[#2A9D8F]' 
-                                : 'bg-white border-gray-300 text-gray-900 focus:border-[#1D3557]'
-                            } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
-                          />
-                        </div>
+                        <input
+                          type="date"
+                          id="date"
+                          name="date"
+                          value={formData.date}
+                          onChange={handleChange}
+                          min={minDate}
+                          required
+                          className={`w-full px-4 py-3 rounded-lg border ${
+                            darkMode 
+                              ? 'bg-gray-700 border-gray-600 text-white focus:border-[#2A9D8F]' 
+                              : 'bg-white border-gray-300 text-gray-900 focus:border-[#1D3557]'
+                          } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
+                        />
                         {formErrors.date && (
                           <p className="mt-1 text-sm text-red-500">{formErrors.date}</p>
                         )}
@@ -504,55 +582,39 @@ const BookDemoModal = ({ darkMode, onClose }) => {
                       
                       <div className="mb-6">
                         <label htmlFor="time" className="block text-sm font-medium mb-2">Preferred Time</label>
-                        <div className={`relative flex items-center`}>
-                          <Clock className={`absolute left-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={16} />
-                          <select
-                            id="time"
-                            name="time"
-                            value={formData.time}
-                            onChange={handleChange}
-                            required
-                            className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                              darkMode 
-                                ? 'bg-gray-700 border-gray-600 text-white focus:border-[#2A9D8F]' 
-                                : 'bg-white border-gray-300 text-gray-900 focus:border-[#1D3557]'
-                            } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
-                          >
-                            <option value="">Select time</option>
-                            <option value="9:00 AM">9:00 AM</option>
-                            <option value="10:00 AM">10:00 AM</option>
-                            <option value="11:00 AM">11:00 AM</option>
-                            <option value="1:00 PM">1:00 PM</option>
-                            <option value="2:00 PM">2:00 PM</option>
-                            <option value="3:00 PM">3:00 PM</option>
-                            <option value="4:00 PM">4:00 PM</option>
-                          </select>
-                        </div>
+                        <input
+                          type="time"
+                          id="time"
+                          name="time"
+                          value={formData.time}
+                          onChange={handleChange}
+                          required
+                          className={`w-full px-4 py-3 rounded-lg border ${
+                            darkMode 
+                              ? 'bg-gray-700 border-gray-600 text-white focus:border-[#2A9D8F]' 
+                              : 'bg-white border-gray-300 text-gray-900 focus:border-[#1D3557]'
+                          } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
+                        />
                         {formErrors.time && (
                           <p className="mt-1 text-sm text-red-500">{formErrors.time}</p>
                         )}
                       </div>
                       
-                      <div className="flex space-x-4">
+                      <div className="flex justify-between">
                         <motion.button
                           type="button"
                           onClick={prevStep}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`w-1/2 py-3 px-4 rounded-lg font-medium transition-colors border ${
-                            darkMode 
-                              ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                              : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className="py-3 px-6 bg-gray-300 text-gray-800 rounded-lg font-medium hover:bg-gray-400 transition-colors"
                         >
                           Back
                         </motion.button>
-                        
                         <motion.button
                           type="submit"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="w-1/2 py-3 px-4 bg-[#2A9D8F] text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors"
+                          className="py-3 px-6 bg-[#2A9D8F] text-white rounded-lg font-medium hover:bg-opacity-90 transition-colors"
                         >
                           Book Demo
                         </motion.button>
@@ -561,7 +623,7 @@ const BookDemoModal = ({ darkMode, onClose }) => {
                   )}
                 </form>
               </>
-            )}
+            ))}
           </motion.div>
         </div>
       )}
@@ -570,3 +632,5 @@ const BookDemoModal = ({ darkMode, onClose }) => {
 };
 
 export default BookDemoModal;
+
+

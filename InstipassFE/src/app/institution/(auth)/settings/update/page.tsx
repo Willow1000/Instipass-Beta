@@ -106,7 +106,7 @@ const UpdateInstitutionSettingsForm = () => {
           throw new Error(`Failed to fetch settings data: ${settingsResponse.status}`);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        
         setErrorMessage('Failed to load data. Please try again later.');
         setSubmitStatus('error');
       } finally {
@@ -298,7 +298,7 @@ const UpdateInstitutionSettingsForm = () => {
         // Handle response based on status code
         if (response.ok) {
           const data = await response.json();
-          console.log('Success:', data);
+          
           setSubmitStatus('success');
           
           // If this was a create operation, store the new settings ID
@@ -346,7 +346,7 @@ const UpdateInstitutionSettingsForm = () => {
           }
         }
       } catch (error) {
-        console.error('Error:', error);
+        
         setSubmitStatus('error');
         setErrorMessage(error.message || 'Failed to submit form. Please try again.');
       } finally {

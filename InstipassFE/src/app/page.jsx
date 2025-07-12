@@ -8,11 +8,11 @@ import Image from 'next/image';
 
 import Navbar from './components/navbar';
 import Footer from './components/footer';
-import ParallaxHero from './ParallaxHero';
+import ParallaxHero from './components/ParallaxHero';
 import dynamic from 'next/dynamic';
 
 // Dynamically import BookDemoModal with ssr: false to prevent hydration issues
-const BookDemoModal = dynamic(() => import('./BookDemoModal'), { 
+const BookDemoModal = dynamic(() => import('./components/BookDemoModal'), { 
   ssr: false,
   loading: () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -24,10 +24,10 @@ const BookDemoModal = dynamic(() => import('./BookDemoModal'), {
 });
 
 // Lazy load components for performance
-const FAQSection = lazy(() => import('./FAQSection'));
-const TestimonialCarousel = lazy(() => import('./TestimonialCarousel'));
-const ClientLogos = lazy(() => import('./ClientLogos'));
-const NewsletterSignup = lazy(() => import('./NewsletterSignup'));
+const FAQSection = lazy(() => import('./components/FAQSection'));
+const TestimonialCarousel = lazy(() => import('./components/TestimonialCarousel'));
+const ClientLogos = lazy(() => import('./components/ClientLogos'));
+const NewsletterSignup = lazy(() => import('./components/NewsletterSignup'));
 const AnimatedIDs = lazy(() => import('./components/AnimatedIDs'));
 const AdminDashboardPreview = lazy(() => import('./institution/page'));
 
@@ -307,16 +307,17 @@ const HomePage = () => {
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
                 <motion.button
-                  onClick={() => setIsBookDemoOpen(true)}
-                  className="px-8 py-4 bg-gradient-to-r from-[#1D3557] to-[#2A9D8F] text-white text-lg font-medium rounded-lg shadow-xl"
-                  whileHover={{ scale: 1.05, boxShadow: "0 15px 30px rgba(0, 0, 0, 0.2)" }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Book a Free Demo
-                </motion.button>
+                    onClick={() => setIsBookDemoOpen(true)}
+                    className="px-8 py-4 bg-gradient-to-r from-[#1D3557] to-[#2A9D8F] text-white text-lg font-medium rounded-lg shadow-xl cursor-pointer z-10"
+                    whileHover={{ scale: 1.05, boxShadow: "0 15px 30px rgba(0, 0, 0, 0.2)" }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Calendar className="inline-block mr-2" size={20} />
+                    Book a Demo
+                  </motion.button>
                 <motion.button
                   onClick={() => scrollToSection(featuresRef)}
-                  className="px-8 py-4 bg-white bg-opacity-20 backdrop-blur-sm text-white text-lg font-medium rounded-lg border border-white border-opacity-30 shadow-lg"
+                  className="px-8 py-4 bg-white bg-opacity-20 backdrop-blur-sm text-white text-lg font-medium rounded-lg border border-white border-opacity-30 shadow-lg z-10" 
                   whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.3)" }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -415,7 +416,7 @@ const HomePage = () => {
         </section>
         
         {/* Institution Benefits Section - ENHANCED */}
-        <section id="institution-benefits" className={`py-20 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} overflow-x-hidden`}>
+        <section ref={featuresRef} id="institution-benefits" className={`py-20 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} overflow-x-hidden`}>
           <div className="container mx-auto px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

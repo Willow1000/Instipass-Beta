@@ -94,11 +94,11 @@
               <div class="card-header bg-transparent border-0 pb-0">
                 <div class="row align-items-center">
                   <div class="col">
-                    <div class="form-check">
+                    <!-- <div class="form-check">
                       <input class="form-check-input message-checkbox" type="checkbox" 
                              value="{{ message.id }}" onchange="updateBulkActions()">
                       <label class="form-check-label fw-medium">{{ message.name }}</label>
-                    </div>
+                    </div> -->
                   </div>
                   <div class="col-auto">
                     <span class="badge bg-primary">New</span>
@@ -106,7 +106,7 @@
                 </div>
               </div>
 
-              <a href="{% url 'admin_detail_contactus' message.id %}">
+              
                 <div class="card-body pt-2">
                   <div class="row">
                     <div class="col-md-9">
@@ -145,7 +145,7 @@
                         </div>
                       </div>
                     </div>
-              </a>
+          
                   <div class="col-md-3 text-md-end">
                     <small class="text-muted d-block mb-2">
                       <i class="fas fa-clock me-1"></i>
@@ -153,12 +153,6 @@
                     </small>
                     
                     <div class="d-flex justify-content-md-end gap-2 mt-2">
-                      
-                      <div class="form-check form-switch d-inline-flex align-items-center ms-2">
-                        <input class="form-check-input read-toggle" type="checkbox" role="switch" 
-                               onchange="toggleReadStatus(this, {{ message.id }})" style="width: 2.5em; height: 1.25em;">
-                        <label class="form-check-label ms-2 text-muted small">Mark as read</label>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -216,27 +210,24 @@ document.addEventListener('DOMContentLoaded', function() {
 function applyReadStatusFromStorage() {
   const readMessages = JSON.parse(localStorage.getItem('readMessages')) || [];
   const messageCards = document.querySelectorAll('.message-card');
-  
+  // const detailLinks = document.querySelector(".detail-link")
+  // console.log(`Children: ${detailLinks.firstElementChild}`)
+
+
+
   messageCards.forEach(card => {
     const messageId = card.dataset.id;
+
     if (readMessages.includes(messageId.toString())) {
       markAsRead(card, false); // false means don't update storage again
     }
+    card.addEventListener("click",()=>{
+      markAsRead(card,true)
+      window.location.href = `/super/message/${messageId}`
+    })
   });
 }
 
-// Toggle read status
-function toggleReadStatus(checkbox, messageId) {
-  const messageCard = checkbox.closest('.message-card');
-  
-  if (checkbox.checked) {
-    markAsRead(messageCard, true);
-  } else {
-    markAsUnread(messageCard, true);
-  }
-  
-  updateCounters();
-}
 
 // Mark message as read
 function markAsRead(messageCard, updateStorage) {
@@ -259,10 +250,10 @@ function markAsRead(messageCard, updateStorage) {
   }
   
   // Check the toggle
-  const toggle = messageCard.querySelector('.read-toggle');
-  if (toggle) {
-    toggle.checked = true;
-  }
+  // const toggle = messageCard.querySelector('.read-toggle');
+  // if (toggle) {
+  //   toggle.checked = true;
+  // }
   
   // Update storage if needed
   if (updateStorage) {
@@ -275,41 +266,18 @@ function markAsRead(messageCard, updateStorage) {
 }
 
 // Mark message as unread
-function markAsUnread(messageCard, updateStorage) {
-  const messageId = messageCard.dataset.id;
-  messageCard.dataset.read = 'false';
+
   
-  // Move to unread messages section
-  document.getElementById('unreadMessagesList').appendChild(messageCard);
-  
-  // Apply visual changes
-  messageCard.classList.add('unread-message', 'border-primary', 'border-3');
-  messageCard.classList.remove('read-message', 'opacity-75');
-  
-  // Update badge
-  const badge = messageCard.querySelector('.badge');
-  if (badge) {
-    badge.classList.add('bg-primary');
-    badge.classList.remove('bg-success');
-    badge.textContent = 'New';
-  }
-  
-  // Uncheck the toggle
-  const toggle = messageCard.querySelector('.read-toggle');
-  if (toggle) {
-    toggle.checked = false;
-  }
-  
-  // Update storage if needed
-  if (updateStorage) {
-    const readMessages = JSON.parse(localStorage.getItem('readMessages')) || [];
-    const index = readMessages.indexOf(messageId.toString());
-    if (index > -1) {
-      readMessages.splice(index, 1);
-      localStorage.setItem('readMessages', JSON.stringify(readMessages));
-    }
-  }
-}
+//   // Update storage if needed
+//   if (updateStorage) {
+//     const readMessages = JSON.parse(localStorage.getItem('readMessages')) || [];
+//     const index = readMessages.indexOf(messageId.toString());
+//     if (index > -1) {
+//       readMessages.splice(index, 1);
+//       localStorage.setItem('readMessages', JSON.stringify(readMessages));
+//     }
+//   }
+// }
 
 // Update counters
 function updateCounters() {
@@ -410,28 +378,28 @@ function clearFilters() {
 }
 
 // Bulk actions
-function updateBulkActions() {
-  const checkboxes = document.querySelectorAll('.message-checkbox:checked');
-  const bulkActions = document.getElementById('bulkActions');
-  const selectedCount = document.getElementById('selectedCount');
+// function updateBulkActions() {
+//   const checkboxes = document.querySelectorAll('.message-checkbox:checked');
+//   const bulkActions = document.getElementById('bulkActions');
+//   const selectedCount = document.getElementById('selectedCount');
   
-  selectedCount.textContent = checkboxes.length;
-  bulkActions.style.display = checkboxes.length > 0 ? 'block' : 'none';
-}
+//   selectedCount.textContent = checkboxes.length;
+//   bulkActions.style.display = checkboxes.length > 0 ? 'block' : 'none';
+// }
 
-function markSelectedAsRead() {
-  const selected = document.querySelectorAll('.message-checkbox:checked');
-  if (selected.length === 0) return;
+// function markSelectedAsRead() {
+//   const selected = document.querySelectorAll('.message-checkbox:checked');
+//   if (selected.length === 0) return;
   
-  selected.forEach(checkbox => {
-    const messageCard = checkbox.closest('.message-card');
-    markAsRead(messageCard, true);
-    checkbox.checked = false;
-  });
+//   selected.forEach(checkbox => {
+//     const messageCard = checkbox.closest('.message-card');
+//     markAsRead(messageCard, true);
+//     checkbox.checked = false;
+//   });
   
-  updateBulkActions();
-  updateCounters();
-}
+//   updateBulkActions();
+//   updateCounters();
+// }
 
 // function deleteSelected() {
 //   const selected = document.querySelectorAll('.message-checkbox:checked');

@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     # 'drf_spectacular_sidecar',
 ]
 # SECURITY
-SECRET_KEY ='django-insecure-9d-7bt--r$pg#@!pvk$z8clp*wqnhl84x&lwq)=-za_malt)ic'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 # AUTHENTICATION
 
 # Quick-start development settings - unsuitable for production
@@ -75,19 +75,19 @@ AUTHENTICATION_BACKENDS = [
 # ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 # ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 # ACCOUNT_AUTHENTICATED_REDIRECT_URL = "/"
-AUTH_USER_MODEL = 'accounts.User'
-SITE_ID = 1
-SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "SCOPE": [
-            "profile",
-            "email",
-        ],
-        "AUTH_PARAMS": {
-            "access_type": "online",
-        },
-    }
-}
+
+# SITE_ID = 1
+# SOCIALACCOUNT_PROVIDERS = {
+#     "google": {
+#         "SCOPE": [
+#             "profile",
+#             "email",
+#         ],
+#         "AUTH_PARAMS": {
+#             "access_type": "online",
+#         },
+#     }
+# }
 
 # SESSION-BASED SECURITY SETTINGS
 SESSION_COOKIE_AGE = 3600  # 1 hour
@@ -149,7 +149,7 @@ NOCAPTCHA = True
 CSRF_COOKIE_AGE=3600
 # JWT SETTINGS
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -182,7 +182,7 @@ SIMPLE_JWT = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
+AUTH_USER_MODEL = 'accounts.User'
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -281,8 +281,17 @@ DATABASES = {
     }
 }
 
+# CACHES
 
-
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/1",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
 
 #MAIL
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -297,3 +306,8 @@ EMAIL_USE_SSL = False
 MEDIA_ROOT = os.path.join(BASE_DIR,"media")
 MEDIA_URL='/media/'
 
+
+# CELERY
+CELERY_TIMEZONE = "African/Nairobi"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60

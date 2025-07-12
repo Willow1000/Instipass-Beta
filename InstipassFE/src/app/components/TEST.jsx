@@ -7,7 +7,7 @@ import { Shield, ShieldCheck, ShieldX, Loader2, AlertTriangle } from 'lucide-rea
 const TokenProtectedPage = ({ 
   children, 
   apiEndpoint = 'http://127.0.0.1:8000/institution/api/tokenvalidator', 
-  redirectUrl = '/login' 
+  redirectUrl = '/institution/login' 
 }) => {
   const [tokenStatus, setTokenStatus] = useState('validating'); // 'validating', 'valid', 'invalid', 'error'
   const [errorMessage, setErrorMessage] = useState('');
@@ -18,10 +18,10 @@ const TokenProtectedPage = ({
       setDarkMode(savedTheme === 'dark');
     }
   }, []);
-  console.log(`darkmode:${darkMode}`)
   // Function to get token from various sources
   const getToken = () => {
     const urlParams = new URLSearchParams(window.location.search);
+   
     const urlToken = urlParams.get('token');
     
     // Check URL params first
@@ -64,7 +64,6 @@ const TokenProtectedPage = ({
     } catch (error) {
       setTokenStatus('error');
       setErrorMessage('Failed to validate token. Please try again.');
-      console.error('Token validation error:', error);
     }
   };
 
@@ -82,15 +81,15 @@ const TokenProtectedPage = ({
   }, [apiEndpoint]); // Added apiEndpoint as dependency
 
   // Uncomment this if you want auto-redirect functionality
-  // useEffect(() => {
-  //   if (tokenStatus === 'invalid') {
-  //     const timeoutId = setTimeout(() => {
-  //       window.location.href = '/students/invalidrequest';
-  //     }, 3000);
+  useEffect(() => {
+    if (tokenStatus === 'invalid' && window.location.pathname.includes("institution")) {
+      const timeoutId = setTimeout(() => {
+        window.location.href = '/institution/login';
+      }, 3000);
       
-  //     return () => clearTimeout(timeoutId);
-  //   }
-  // }, [tokenStatus, redirectUrl]);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [tokenStatus, redirectUrl]);
 
   // Loading state
   if (tokenStatus === 'validating') {
@@ -123,7 +122,9 @@ const TokenProtectedPage = ({
               <ShieldX className="w-8 h-8 text-red-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-            <p className="text-red-600 mb-4">{errorMessage}</p>
+            <div className="space-y-3">
+          </div>
+            {/* <p className="text-red-600 mb-4">{errorMessage}</p> */}
             
           </div>
           
@@ -153,6 +154,14 @@ const TokenProtectedPage = ({
               Try Again
             </button>
             
+          </div>
+              <div className="space-y-3">
+            <button
+              onClick={() => window.location.href = redirectUrl}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+            >
+              Go to Login
+            </button>
           </div>
         </div>
       </div>

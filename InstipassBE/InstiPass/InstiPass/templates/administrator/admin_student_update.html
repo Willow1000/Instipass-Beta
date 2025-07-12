@@ -188,6 +188,14 @@
                 color: #fff;
             }
         }
+        .current-photo-preview {
+            max-width: 150px;
+            height: auto;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -202,9 +210,9 @@
                     </h1>
                     <p class="mb-0 opacity-75">Update your student registration details</p>
                 </div>
-                <div class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                <!-- <div class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
                     <i class="bi bi-moon-fill" id="theme-toggle-icon"></i>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -213,7 +221,7 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-body p-4">
                     <!-- Form -->
-                    <form method="post" novalidate>
+                    <form method="post" novalidate enctype="multipart/form-data">
                         <!-- CSRF Token (for Django integration) -->
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                         
@@ -297,6 +305,26 @@
                             {% endif %}
                         </div>
                         
+                        <!-- Photo Field -->
+                        <div class="form-group">
+                            <label for="photo" class="form-label required">Student Photo</label>
+                            {% if form.photo.value %}
+                                <p class="text-white">Current Image:</p>
+                                <img src="{{ form.photo.value.url }}" alt="Current Student Photo" class="current-photo-preview" height="100" width="100">
+                                <br>
+                                <small class="form-text text-muted">Select a new file below to change the photo.</small>
+                            {% endif %}
+
+                            <input type="file" name="photo" id="photo" class="form-control" {% if not form.photo.value %}required{% endif %}>
+                            
+                            {% if form.photo.errors %}
+                                <div class="text-danger">
+                                    {{ form.photo.errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <small class="form-text text-muted">Upload a clear photo of the student</small>
+                        </div>
                         
                         <!-- Form Actions -->
                         <div class="d-flex justify-content-between align-items-center mt-4">
@@ -319,32 +347,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Check for saved theme preference
-            const savedTheme = localStorage.getItem('instipass-theme');
-            if (savedTheme === 'dark') {
-                document.body.classList.add('dark-mode');
-                document.getElementById('theme-toggle-icon').classList.remove('bi-moon-fill');
-                document.getElementById('theme-toggle-icon').classList.add('bi-sun-fill');
-            }
-
-            // Theme toggle functionality
-            document.getElementById('theme-toggle').addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                const isDarkMode = document.body.classList.contains('dark-mode');
-                
-                // Update icon
-                const icon = document.getElementById('theme-toggle-icon');
-                if (isDarkMode) {
-                    icon.classList.remove('bi-moon-fill');
-                    icon.classList.add('bi-sun-fill');
-                    localStorage.setItem('instipass-theme', 'dark');
-                } else {
-                    icon.classList.remove('bi-sun-fill');
-                    icon.classList.add('bi-moon-fill');
-                    localStorage.setItem('instipass-theme', 'light');
-                }
-            });
+            document.body.classList.add('dark-mode');
         });
     </script>
 </body>
 </html>
-
+```

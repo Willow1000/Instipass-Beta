@@ -6,4 +6,4 @@ class AdminConfig(AppConfig):
     name = 'administrator'
 
     def ready(self):
-        from .signals import send_newsletter_signup_confirmation, send_contact_confirmation,send_demo_booking_confirmation, delete_demobooking
+        from .signals import   delete_demobooking,delete_contactus_message

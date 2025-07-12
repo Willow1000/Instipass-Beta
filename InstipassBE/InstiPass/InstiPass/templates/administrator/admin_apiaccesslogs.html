@@ -62,6 +62,7 @@
                             <select class="form-select" id="statusFilter">
                                 <option value="">All Status</option>
                                 <option value="2xx">2xx Success</option>
+                                <option value="3xx">3xx Redirect</option>
                                 <option value="4xx">4xx Client Error</option>
                                 <option value="5xx">5xx Server Error</option>
                             </select>
@@ -347,6 +348,8 @@
                         matchesStatus = status >= 400 && status < 500;
                     } else if (statusFilter === '5xx') {
                         matchesStatus = status >= 500;
+                    }else if(statusFilter == '3xx'){
+                        matchesStatus = status >= 300
                     }
                 }
                 

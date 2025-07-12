@@ -17,6 +17,10 @@ router.register("institutions",InstitutionsViewSet,basename="institutionsApi")
 router.register("settings",InstitutionSettingsViewSet,basename="institutionSettingsApi")
 router.register("notifications",NotificationViewSet,basename = "institutionNotificationsApi")
 router.register('students',InstitutionStudentViewSet,basename='institutionStudents')
+router.register("newsletter",NewsLetterViewSet,basename = 'newsletterAPI')
+router.register("contactus",NotificationsViewSet,basename = "adminNotificationAPI")
+router.register('bookdemo',DemoBookingViewSet,basename="demobookingAPI")
+
 
 urlpatterns = [
     path('api/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -24,7 +28,8 @@ urlpatterns = [
     path("api/",include(router.urls)),
     path("api/institution_stats/",IdProcessStatsAPIView.as_view(),name="id_process_stats"), 
     path("api/tokenvalidator",InstitutionTokenAPIView.as_view(),name='validate_token_institution'),
-    path("api/signup/token/create",CreateSignupTokenAPIView.as_view(),name="create_institution_signup_token")
+    path("api/signup/token/create",CreateSignupTokenAPIView.as_view(),name="create_institution_signup_token"),
+     path("demobooking/conf/",ConfirmDemo.as_view(),name='confirm_demo')
 ]
 
 

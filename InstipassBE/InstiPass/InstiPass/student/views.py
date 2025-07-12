@@ -80,13 +80,7 @@ class StudentViewSet(viewsets.ModelViewSet):
                 return Response({"detail": "Error occurred try again later. If it persists contact support"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
 
-class NotificationViewSet(viewsets.ModelViewSet):
-    serializer_class = NotificationSerializer
-    http_method_names = ['get']
-    permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        student = get_object_or_404(Student,email = self.request.user.email)
-        return Notifications.objects.filter(recipient = student)    
+
 
 
 

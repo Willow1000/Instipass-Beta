@@ -17,6 +17,15 @@ class NotificationsAdmin(admin.ModelAdmin):
     list_display = ("recipient",'created_at')
     search_field = ("recipient",'created_at')
 
+
+# Register your models here.
+class NewsLetterAdmin(admin.ModelAdmin):
+    list_filter = ["email"]
+    list_display = ["email"]
+    search_field = ["email"]
+
+admin.site.register(NewsLetter,NewsLetterAdmin)
+
 admin.site.register(Institution,InstitutionAdmin)
 admin.site.register(InstitutionSettings,InstitutionSettingsAdmin)
 admin.site.register(Notifications,NotificationsAdmin)

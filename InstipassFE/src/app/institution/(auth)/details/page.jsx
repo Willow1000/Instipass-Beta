@@ -76,14 +76,14 @@ const InstitutionDetailsForm = () => {
             fingerprint: result.visitorId
           }));
           
-          console.log('Fingerprint generated successfully');
+      
         } catch (error) {
-          console.warn('Fingerprinting failed, continuing without fingerprint:', error);
+       
         }
       };
       
       script.onerror = () => {
-        console.warn('Failed to load fingerprint script');
+      
       };
       
       // Add script to document
@@ -310,7 +310,7 @@ const InstitutionDetailsForm = () => {
         // Handle response based on status code
         if (response.ok) {
           const data = await response.json();
-          console.log('Success:', data);
+     
           setSubmitStatus('success');
           
           // Reset form after successful submission
@@ -363,7 +363,7 @@ const InstitutionDetailsForm = () => {
           }
         }
       } catch (error) {
-        console.error('Error:', error);
+
         setSubmitStatus('error');
         setErrorMessage(error.message || 'Failed to submit form. Please try again.');
       } finally {

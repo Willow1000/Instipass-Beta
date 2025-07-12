@@ -219,10 +219,14 @@
                             <label class="form-label text-muted small">Institution Type</label>
                             <select class="form-select" id="typeFilter">
                                 <option value="">All Types</option>
-                                {% regroup institutions by institution_type as types_list %}
+                                <!-- {% regroup institutions by institution_type as types_list %}
                                 {% for type in types_list %}
                                     <option value="{{ type.grouper }}">{{ type.grouper }}</option>
-                                {% endfor %}
+                                {% endfor %} -->
+                                <option value="University">University</option>
+                                <option value="College">College</option>
+                                <option value="Polytechnic">Polytechnic</option>
+                                <option value="Institute">Institute</option>
                             </select>
                         </div>
                         <div class="col-md-2">

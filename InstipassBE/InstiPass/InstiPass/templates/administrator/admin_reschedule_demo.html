@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -235,14 +236,15 @@
                         
                         <div class="form-group">
                             <label for="id_time" class="form-label required">Preferred Time</label>
-                            <select name="time" id="id_time" class="form-select" required value="{{ demo.time }}">
+                            <!-- <select name="time" id="id_time" class="form-select" required value="{{ demo.time }}">
                                 <option value="">Select preferred time</option>
                                 <option value="9:00 AM - 10:00 AM" {% if form.time.value == '9:00 AM - 10:00 AM' %}selected{% endif %}>9:00 AM - 10:00 AM</option>
                                 <option value="10:00 AM - 11:00 AM" {% if form.time.value == '10:00 AM - 11:00 AM' %}selected{% endif %}>10:00 AM - 11:00 AM</option>
                                 <option value="1:00 PM - 2:00 PM" {% if form.time.value == '1:00 PM - 2:00 PM' %}selected{% endif %}>1:00 PM - 2:00 PM</option>
                                 <option value="2:00 PM - 3:00 PM" {% if form.time.value == '2:00 PM - 3:00 PM' %}selected{% endif %}>2:00 PM - 3:00 PM</option>
                                 <option value="3:00 PM - 4:00 PM" {% if form.time.value == '3:00 PM - 4:00 PM' %}selected{% endif %}>3:00 PM - 4:00 PM</option>
-                            </select>
+                            </select> -->
+                            <input type="time" id="id_time" name="time" class="form-control" value="{{ demo.time|default:'' }}" required>
                             {% if form.time.errors %}
                             <div class="text-danger">
                                 {{ form.time.errors }}
@@ -300,4 +302,4 @@
     </script>
 </body>
 </html>
-
+```

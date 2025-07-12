@@ -6,7 +6,7 @@ import { Moon, Sun, CreditCard, Menu, X, BarChart, Shield, Calendar, Users, Mail
 const HomeNavbar = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isBookDemoOpen, setIsBookDemoOpen] = useState(false);
+  // const [isBookDemoOpen, setIsBookDemoOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   
   // Toggle dark mode
@@ -71,8 +71,8 @@ const HomeNavbar = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden lg:flex space-x-6">
-          <Link href="#dashboard-preview" className="hover:text-[#2A9D8F] transition-colors flex items-center dark:text-white">
-            <BarChart size={16} className="mr-1" /> Dashboard
+          <Link href="/tutorials" className="hover:text-[#2A9D8F] transition-colors flex items-center dark:text-white">
+            <BarChart size={16} className="mr-1" /> Tutorials
           </Link>
           <Link href="#institution-benefits" className="hover:text-[#2A9D8F] transition-colors flex items-center dark:text-white">
             <Shield size={16} className="mr-1" /> Benefits
@@ -102,12 +102,12 @@ const HomeNavbar = () => {
             Sign In
           </Link>
           
-          <button 
+          {/* <button 
             onClick={() => setIsBookDemoOpen(true)}
             className="px-4 py-2 rounded-md  bg-gradient-to-r from-[#1D3557] to-[#2A9D8F] text-white hover:bg-opacity-90 transition-colors"
           >
             Book Demo
-          </button>
+          </button> */}
         </div>
 
         {/* Mobile Menu Button */}
@@ -137,11 +137,11 @@ const HomeNavbar = () => {
         }`}>
           <div className="flex flex-col px-6 py-4 space-y-4 animate-fadeIn">
             <Link 
-              href="#dashboard-preview" 
+              href="/tutorials" 
               className="hover:text-[#2A9D8F] transition-colors py-2 border-b border-gray-200 dark:border-gray-700 flex items-center"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <BarChart size={16} className="mr-2" /> Dashboard
+              <BarChart size={16} className="mr-2" /> Tutorials
             </Link>
             <Link 
               href="#institution-benefits" 
@@ -175,14 +175,14 @@ const HomeNavbar = () => {
             {/* Mobile Action Buttons */}
             <div className="flex flex-col space-y-3 pt-2">
               <Link 
-                href="/login" 
+                href="institution/login" 
                 className="px-4 py-2 rounded-md bg-[#1D3557] text-white hover:bg-opacity-90 transition-colors text-center"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Sign In
               </Link>
               
-              <button 
+              {/* <button 
                 onClick={() => {
                   setMobileMenuOpen(false);
                   setIsBookDemoOpen(true);
@@ -190,7 +190,7 @@ const HomeNavbar = () => {
                 className="px-4 py-2 rounded-md  bg-gradient-to-r from-[#1D3557] to-[#2A9D8F] text-white hover:bg-opacity-90 transition-colors text-center"
               >
                 Book Demo
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

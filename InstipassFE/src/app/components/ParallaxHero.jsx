@@ -156,7 +156,7 @@ const ParallaxHero = ({ darkMode }) => {
         animate={{ y: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 1.5 }}
       >
-        <div className="w-8 h-12 border-2 border-white rounded-full flex justify-center">
+        <div className="w-8 h-12 border-2 border-white rounded-full flex justify-center z-100">
           <div className="w-2 h-2 bg-white rounded-full mt-2"></div>
         </div>
       </motion.div>

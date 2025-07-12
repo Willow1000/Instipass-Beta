@@ -20,7 +20,7 @@
 </div>
 
 <div class="action-buttons">
-    <a href="#" class="cta-button">Add to Calendar</a>
+    <a href="{{ calendar_link|default:'#' }}" class="cta-button text-dark">Add to Calendar</a>
     <a href="#" class="cta-button secondary">Contact Support</a>
 </div>
 
@@ -43,7 +43,11 @@
         </div>
     </div>
 </div>
-
+<div class="calendar-invite">
+                <p>Add this demo session to your calendar:</p>
+                <a href="{{ calendar_link|default:'#' }}" class="btn btn-primary">Add to Google Calendar</a>
+                <!-- <a href="{{ ics_link|default:'#' }}" class="btn-secondary">Download .ICS File</a> -->
+            </div>
 <div class="security-notice">
     <h4>Need to Reschedule?</h4>
     <p>If this new time doesn't work for you, please reply to this email or contact us at <a href="mailto:demos@instipass.com">demos@instipass.com</a> to arrange a more suitable time.</p>

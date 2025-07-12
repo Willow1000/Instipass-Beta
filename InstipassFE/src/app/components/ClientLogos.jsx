@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Users, Building, Award, CheckCircle } from 'lucide-react';
-import {logos} from "./utils/fetch"
+import {logos} from "../utils/fetch"
 
 
 const  ClientLogos = ({ darkMode }) => {
@@ -117,7 +117,10 @@ const  ClientLogos = ({ darkMode }) => {
               } hover:shadow-md transition-shadow`}
             >
               <div className="w-12 h-12 rounded-full bg-[#1D3557] bg-opacity-10 flex items-center justify-center mb-3">
-                {logo.institution_type.includes('University') ? (
+                {logo.logo? (
+                  <img src={logo.logo} alt="Institution Logo" className='rounded-full  h-9 w-9' />
+                ):
+                (logo.institution_type.includes('University') ? (
                   <Building size={24} className="text-[#1D3557]" />
                 ) : logo.institution_type.includes('College') ? (
                   <Users size={24} className="text-[#1D3557]" />
@@ -125,7 +128,7 @@ const  ClientLogos = ({ darkMode }) => {
                   <Award size={24} className="text-[#1D3557]" />
                 ) : (
                   <CheckCircle size={24} className="text-[#1D3557]" />
-                )}
+                ))}
               </div>
               <h3 className="font-medium text-center">{logo.name}</h3>
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{logo.institution_type}</p>

@@ -47,14 +47,14 @@ const Register = () => {
             fingerprint: result.visitorId
           }));
           
-          console.log('Fingerprint generated successfully');
+   
         } catch (error) {
-          console.warn('Fingerprinting failed, continuing without fingerprint:', error);
+          
         }
       };
       
       script.onerror = () => {
-        console.warn('Failed to load fingerprint script');
+       
       };
       
       // Add script to document
@@ -170,7 +170,7 @@ const Register = () => {
         );
         
         // Handle successful response
-        console.log('Registration successful:', response.data);
+ 
         setSubmitStatus({
           type: 'success',
           message: 'Registration successful! Redirecting to login...'
@@ -182,7 +182,7 @@ const Register = () => {
         }, 2000);
         
       } catch (error) {
-        console.error('Registration error:', error);
+       
         
         // Handle error response
         if (error.response && error.response.data) {

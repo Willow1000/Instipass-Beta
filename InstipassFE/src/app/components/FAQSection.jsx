@@ -1,10 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
-
+  const [darkMode, setDarkMode] = useState(false);
+  useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const savedTheme = localStorage.getItem('instipass-theme');
+        setDarkMode(savedTheme === 'dark');
+        
+        // Listen for theme changes from Navbar
+        const handleThemeChange = (event) => {
+          setDarkMode(event.detail.darkMode);
+        };
+        
+        window.addEventListener('themeChange', handleThemeChange);
+        return () => {
+          window.removeEventListener('themeChange', handleThemeChange);
+        };
+      }
+    }, []);
   return (
     <motion.div 
       className={`border-b border-gray-200 py-4 ${isOpen ? 'bg-opacity-5 bg-[#2A9D8F] rounded-lg' : ''}`}
@@ -35,7 +51,7 @@ const FAQItem = ({ question, answer }) => {
         transition={{ duration: 0.3 }}
         className="overflow-hidden"
       >
-        <p className="pt-4 text-gray-600">{answer}</p>
+        <p className={`pt-4 ${darkMode?'text-white':'text-black'}`}>{answer}</p>
       </motion.div>
     </motion.div>
   );
@@ -66,7 +82,7 @@ const FAQSection = ({ darkMode }) => {
   ];
 
   return (
-    <section id="faq" className={`py-16 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+    <section id="faq" className={`${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -75,10 +91,7 @@ const FAQSection = ({ darkMode }) => {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-          <p className={`max-w-2xl mx-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Find answers to common questions about Instipass and how it can transform your institution's ID management.
-          </p>
+        
         </motion.div>
         
         <div className="max-w-3xl mx-auto">

@@ -70,7 +70,7 @@ const Login = () => {
       path: '/' // Available across the site
     });
     
-    console.log('Refresh token stored as cookie');
+   
   };
 
   const handleSubmit = async (e) => {
@@ -108,7 +108,7 @@ const Login = () => {
         try {
           data = await response.json();
         } catch (parseError) {
-          console.error('Error parsing response:', parseError);
+          
           setErrorIcon(<Server />);
           throw new Error('Server returned an invalid response. Please try again later.');
         }
@@ -148,17 +148,16 @@ const Login = () => {
           localStorage.setItem('access_token', data.access);
           
           // Log the access token to console as requested
-          console.log('Access Token:', data.access);
           
           // Store refresh token as a cookie if it exists in the response
           if (data.refresh) {
             setRefreshTokenCookie(data.refresh);
-            console.log('Refresh Token stored as cookie');
+       
           } else {
-            console.warn('Refresh token not found in response');
+            
           }
           
-          console.log('Authentication successful! Access token stored in localStorage and refresh token stored as cookie.');
+        
           
           // Redirect to institution/ path after successful login
           router.push('/institution/');
@@ -170,7 +169,7 @@ const Login = () => {
           throw new Error('Access token not found in response');
         }
       } catch (error) {
-        console.error('Authentication error:', error);
+       
         
         // Handle specific error types
         if (error.name === 'AbortError') {
@@ -318,7 +317,7 @@ const Login = () => {
                 Remember me
               </label>
             </div>
-            <a href="http://127.0.0.1:8000/password-reset/" className="text-sm text-[#2A9D8F] hover:underline">
+            <a href="http://127.0.0.1:8000/password-reset/" className="text-sm text-[#2A9D8F] hover:underline" target='_blank'>
               Forgot password?
             </a>
           </div>
@@ -348,17 +347,17 @@ const Login = () => {
             )}
           </motion.button>
           
-          <div className="relative flex items-center justify-center mt-8 mb-4">
+          {/* <div className="relative flex items-center justify-center mt-8 mb-4">
             <div className={`flex-grow border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}></div>
             <span className={`mx-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>OR</span>
             <div className={`flex-grow border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}></div>
-          </div>
+          </div> */}
           
           
           
-          <p className={`text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          {/* <p className={`text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Don't have an account? <Link href="/institution/signup" className="text-[#2A9D8F] hover:underline">Sign up</Link>
-          </p>
+          </p> */}
         </form>
       </motion.div>
     </div>

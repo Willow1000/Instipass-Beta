@@ -21,7 +21,7 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h1 class="h2 text-dark mb-1">Demo Bookings</h1>
+                        <h1 class="h2 text-white mb-1">Demo Bookings</h1>
                         <p class="text-muted mb-0">Manage and monitor Demo Sessions</p>
                     </div>
                     <div class="d-flex gap-2">
@@ -46,25 +46,28 @@
                             <label class="form-label text-muted small">Search</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="searchEntries" placeholder="Search by field1, category1...">
+                                <input type="text" class="form-control" id="searchEntries" placeholder="Search by name, institution, email...">
                             </div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label text-muted small">Status</label>
                             <select class="form-select" id="statusFilter">
                                 <option value="">All Status</option>
-                                <option value="OPTION1">Option 1</option>
-                                <option value="OPTION2">Option 2</option>
-                                <option value="OPTION3">Option 3</option>
+                                <option value="SCHEDULED">Scheduled</option>
+                                <option value="CONFIRMED">Confirmed</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="CANCELLED">Cancelled</option>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-muted small">Category 1</label>
-                            <select class="form-select" id="category1Filter">
-                                <option value="">All Categories</option>
-                                {% for category in categories %}
-                                <option value="{{ category }}">{{ category }}</option>
-                                {% endfor %}
+                            <label class="form-label text-muted small">Institution Size</label>
+                            <select class="form-select" id="sizeFilter">
+                                <option value="">All Sizes</option>
+                                <option value="S">50-200 students</option>
+                                <option value="M">201-1,000 students</option>
+                                <option value="L">1,001-5,000 students</option>
+                                <option value="XL">5,001-10,000 students</option>
+                                <option value="XXL">10,001+ students</option>
                             </select>
                         </div>
                         <div class="col-md-2">
@@ -98,27 +101,27 @@
                 <div class="col-md-3">
                     <div class="card text-center border-0 bg-primary bg-opacity-10">
                         <div class="card-body">
-                            <i class="bi bi-1-circle text-primary bi-2x mb-2"></i>
-                            <h5 class="card-title text-primary" id="option1Count">0</h5>
-                            <p class="card-text text-muted small">Option 1 Status</p>
+                            <i class="bi bi-clock-history text-primary bi-2x mb-2"></i>
+                            <h5 class="card-title text-primary" id="pendingCount">{{ pending_count|default:0 }}</h5>
+                            <p class="card-text text-muted small">Pending</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card text-center border-0 bg-success bg-opacity-10">
                         <div class="card-body">
-                            <i class="bi bi-2-circle text-success bi-2x mb-2"></i>
-                            <h5 class="card-title text-success" id="option2Count">0</h5>
-                            <p class="card-text text-muted small">Option 2 Status</p>
+                            <i class="bi bi-check-circle text-success bi-2x mb-2"></i>
+                            <h5 class="card-title text-success" id="confirmedCount">{{ confirmed_count|default:0 }}</h5>
+                            <p class="card-text text-muted small">Confirmed</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card text-center border-0 bg-warning bg-opacity-10">
                         <div class="card-body">
-                            <i class="bi bi-3-circle text-warning bi-2x mb-2"></i>
-                            <h5 class="card-title text-warning" id="option3Count">0</h5>
-                            <p class="card-text text-muted small">Option 3 Status</p>
+                            <i class="bi bi-check2-all text-warning bi-2x mb-2"></i>
+                            <h5 class="card-title text-warning" id="completedCount">{{ completed_count|default:0 }}</h5>
+                            <p class="card-text text-muted small">Completed</p>
                         </div>
                     </div>
                 </div>
@@ -137,7 +140,7 @@
             <div class="card">
                 <div class="card-header bg-white border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Demo Bookings</h5>
+                        <h5 class="mb-0 text-dark">Demo Bookings</h5>
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-primary btn-sm" onclick="exportEntries()">
                                 <i class="bi bi-download me-1"></i>Export
@@ -158,6 +161,9 @@
                                     <th class="px-3 py-3 text-center" style="width: 60px;">
                                         <small>ID</small>
                                     </th>
+                                    <th class="px-3 py-3" style="width: 150px;">
+                                        <small>Name</small>
+                                    </th>
                                     <th class="px-3 py-3" style="width: 180px;">
                                         <small>Institution</small>
                                     </th>
@@ -167,7 +173,7 @@
                                     <th class="px-3 py-3" style="width: 120px;">
                                         <small>Phone Number</small>
                                     </th>
-                                    <th class="px-3 py-3" style="width: 180px;">
+                                    <th class="px-3 py-3" style="width: 120px;">
                                         <small>Scheduled Date</small>
                                     </th>
                                     <th class="px-3 py-3 text-center" style="width: 120px;">
@@ -188,13 +194,13 @@
                                 {% for entry in bookings %}
                                 
                                 <tr class="entry-row" 
-                                    data-field1="{{ entry.field1 }}" 
-                                    data-field2="{{ entry.field2 }}"
-                                    data-field3="{{ entry.field3 }}"
-                                    data-category1="{{ entry.category1 }}"
-                                    data-category2="{{ entry.category2 }}"
-                                    data-date-field="{{ entry.date_field|date:'Y-m-d' }}"
-                                    data-time-field="{{ entry.time_field }}"
+                                    data-name="{{ entry.name }}" 
+                                    data-institution="{{ entry.institution }}"
+                                    data-email="{{ entry.email }}"
+                                    data-phone="{{ entry.phone_number }}"
+                                    data-size="{{ entry.size }}"
+                                    data-date="{{ entry.date|date:'Y-m-d' }}"
+                                    data-time="{{ entry.time }}"
                                     data-status="{{ entry.status }}"
                                     data-created="{{ entry.created_at|date:'Y-m-d H:i:s' }}">
                                     
@@ -205,8 +211,15 @@
                                     
                                         <td class="px-3 py-2">
                                             <div class="d-flex align-items-center">
-                                                <a href="{% url 'admin_demosession_detail' entry.id %}" class="cursor-ponter text-decoration-none">
                                                 <i class="bi bi-person-circle text-primary me-2"></i>
+                                                <span class="fw-medium">{{ entry.name }}</span>
+                                            </div>
+                                        </td>
+                                    
+                                        <td class="px-3 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <a href="{% url 'admin_demosession_detail' entry.id %}" class="cursor-pointer text-decoration-none">
+                                                <i class="bi bi-building text-primary me-2"></i>
                                                 <span class="fw-medium">{{ entry.institution }}</span>
                                                 </a>
                                             </div>
@@ -228,7 +241,7 @@
                                         <td class="px-3 py-2">
                                             <div class="d-flex align-items-center">
                                                 <i class="bi bi-calendar text-primary me-2"></i>
-                                                <small class="text-muted"c>{{ entry.date }}</small>
+                                                <small class="text-muted">{{ entry.date }}</small>
                                             </div>
                                         </td>
                                         
@@ -242,12 +255,14 @@
                                         
                                         <td class="text-center px-3 py-2">
                                             {% if entry.status %}
-                                                {% if entry.status == 'OPTION1' %}
-                                                    <span class="badge bg-primary">Option 1</span>
-                                                {% elif entry.status == 'OPTION2' %}
-                                                    <span class="badge bg-success">Option 2</span>
-                                                {% elif entry.status == 'OPTION3' %}
-                                                    <span class="badge bg-warning">Option 3</span>
+                                                {% if entry.status == 'SCHEDULED' %}
+                                                    <span class="badge bg-primary">Scheduled</span>
+                                                {% elif entry.status == 'CONFIRMED' %}
+                                                    <span class="badge bg-success">Confirmed</span>
+                                                {% elif entry.status == 'COMPLETED' %}
+                                                    <span class="badge bg-warning">Completed</span>
+                                                {% elif entry.status == 'CANCELLED' %}
+                                                    <span class="badge bg-danger">Cancelled</span>
                                                 {% else %}
                                                     <span class="badge bg-secondary">{{ entry.get_status_display }}</span>
                                                 {% endif %}
@@ -267,18 +282,13 @@
                                     <td class="px-3 py-3 text-center">
                                         <div class="btn-group d-flex gap-2">
                                             <a href='{% url "admin_reschedule_demosession" entry.id %}' class="btn btn-sm btn-outline-primary">
-                                                <!-- <i class="bi bi-eye"></i> -->
-                                               Reschedule
+                                                <i class="bi bi-calendar-event me-1"></i>Reschedule
                                             </a>
-                                            <a href="{% url 'delete_demobooking' entry.id %}" class="btn btn-sm btn-outline-danger">
-                                                Delete
-                                                    <!-- <i class="bi bi-trash"></i> -->
-   
+                                            <a href='{% url "admin_demosession_detail" entry.id %}' class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-eye me-1"></i>View
                                             </a>
                                         </div>
                                     </td>
-                                    
-                                    
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -287,174 +297,202 @@
                 </div>
             </div>
 
-            <!-- Pagination Info -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted small">
-                    Showing <span id="showingCount">{{ ary_entries|length }}</span> of {{ ary_entries|length }} entries
-                </div>
-                <div id="paginationControls" class="d-flex gap-2">
-                    <!-- Pagination controls would go here -->
-                </div>
-            </div>
-
-        {% elif no_results %}
-            <!-- No Search Results -->
-            <div class="text-center py-5">
-                <div class="text-muted">
-                    <i class="bi bi-search bi-4x mb-4 text-secondary"></i>
-                    <h4>No entries found</h4>
-                    <p>Try adjusting your search criteria or filters.</p>
-                    <button class="btn btn-outline-secondary" onclick="clearFilters()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Clear Filters
-                    </button>
-                </div>
-            </div>
         {% else %}
-            <!-- No Entries -->
             <div class="text-center py-5">
-                <div class="text-muted">
-                    <i class="bi bi-inbox bi-4x mb-4 text-secondary"></i>
-                    <h4>No Demo Sessions yet</h4>
-                    
-                </div>
+                <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+                <h4 class="text-muted mt-3">No Demo Bookings Found</h4>
+                <p class="text-muted">There are currently no demo bookings in the system.</p>
+                <a href="{% url 'admin_create_demosession' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Schedule First Demo
+                </a>
             </div>
         {% endif %}
     </div>
 
-    <!-- JavaScript for filtering and dynamic functionality -->
+    <!-- JavaScript for Search and Filter Functionality -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            updateStatistics();
-            initializeFilters();
-        });
-
-        function updateStatistics() {
-            const rows = document.querySelectorAll('.entry-row');
-            let option1Count = 0;
-            let option2Count = 0;
-            let option3Count = 0;
-            let totalCount = rows.length;
-
-            rows.forEach(row => {
-                const status = row.dataset.status;
-                if (status === 'OPTION1') option1Count++;
-                else if (status === 'OPTION2') option2Count++;
-                else if (status === 'OPTION3') option3Count++;
-            });
-
-            document.getElementById('option1Count').textContent = option1Count;
-            document.getElementById('option2Count').textContent = option2Count;
-            document.getElementById('option3Count').textContent = option3Count;
-            document.getElementById('totalEntriesCount').textContent = totalCount;
-        }
-
-        function initializeFilters() {
             const searchInput = document.getElementById('searchEntries');
             const statusFilter = document.getElementById('statusFilter');
-            const category1Filter = document.getElementById('category1Filter');
+            const sizeFilter = document.getElementById('sizeFilter');
             const dateFilter = document.getElementById('dateFilter');
-
-            if (searchInput) {
-                searchInput.addEventListener('input', filterEntries);
-            }
-            if (statusFilter) {
-                statusFilter.addEventListener('change', filterEntries);
-            }
-            if (category1Filter) {
-                category1Filter.addEventListener('change', filterEntries);
-            }
-            if (dateFilter) {
-                dateFilter.addEventListener('change', filterEntries);
-            }
-        }
-
-        function filterEntries() {
-            const searchTerm = document.getElementById('searchEntries').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-            const category1Filter = document.getElementById('category1Filter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
+            const perPageFilter = document.getElementById('perPageFilter');
+            const tableBody = document.getElementById('aryEntriesTableBody');
+            const allRows = Array.from(tableBody.querySelectorAll('.entry-row'));
             
-            const rows = document.querySelectorAll('.entry-row');
-            let visibleCount = 0;
+            let currentPage = 1;
+            let filteredRows = [...allRows];
+            
+            // Update statistics based on filtered data
+            function updateStatistics(rows) {
+                const pendingCount = rows.filter(row => row.dataset.status === 'SCHEDULED').length;
+                const confirmedCount = rows.filter(row => row.dataset.status === 'CONFIRMED').length;
+                const completedCount = rows.filter(row => row.dataset.status === 'COMPLETED').length;
+                
+                document.getElementById('pendingCount').textContent = pendingCount;
+                document.getElementById('confirmedCount').textContent = confirmedCount;
+                document.getElementById('completedCount').textContent = completedCount;
+            }
+            
+            // Helper function to parse date strings correctly
+            function parseDate(dateStr) {
+                // Handle both 'YYYY-MM-DD' and other date formats
+                if (dateStr.includes('-')) {
+                    const parts = dateStr.split('-');
+                    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                }
+                return new Date(dateStr);
+            }
+            
+            // Helper function to check if a date is within a range
+            function isDateInRange(dateStr, rangeType) {
+                if (!dateStr || !rangeType) return true;
+                
+                const rowDate =dateStr;
+                const today = new Date();
+                today.setHours(23, 59, 59, 999); // End of today
+                
+                switch (rangeType) {
+                    case 'today':
+                        const todayStart = today.toISOString().split('T')[0];
+                        // todayStart.setHours(0, 0, 0, 0);
+                        return rowDate=== todayStart;
+                        
+                    case 'week':
+                        function getCurrentWeekRange() {
+                            const now = new Date();
+                            const dayOfWeek = now.getDay(); // 0 (Sun) to 6 (Sat)
+                            const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
 
-            rows.forEach(row => {
-                let visible = true;
+                            const monday = new Date(now);
+                            monday.setDate(now.getDate() + diffToMonday);
 
-                // Search filter
-                if (searchTerm) {
-                    const field1 = row.dataset.field1.toLowerCase();
-                    const category1 = row.dataset.category1.toLowerCase();
-                    const field2 = row.dataset.field2.toLowerCase();
+                            const sunday = new Date(monday);
+                            sunday.setDate(monday.getDate() + 6);
+
+                            const format = d => d.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+                            return {
+                                start: format(monday),
+                                end: format(sunday)
+                            };
+                            }
+                        const { start, end } = getCurrentWeekRange();    
+                       
+                        return rowDate >= start && rowDate <= end;
+                        
+                    case 'month':
+                        const monthAgo = new Date(today);
+                        const rowMonth = rowDate.split('-')[1]
+                        // monthAgo.setMonth(today.getMonth() - 1);
+                        // monthAgo.setHours(0, 0, 0, 0);
+                        const todayMonth = today.toISOString().split('T')[0].split('-')[1]
+                        return rowMonth === todayMonth;
+                        
+                    default:
+                        return true;
+                }
+            }
+            
+            // Filter rows based on search and filter criteria
+            function filterRows() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusValue = statusFilter.value;
+                const sizeValue = sizeFilter.value;
+                const dateValue = dateFilter.value;
+                
+                filteredRows = allRows.filter(row => {
+                    // Search filter
+                    const name = (row.dataset.name || '').toLowerCase();
+                    const institution = (row.dataset.institution || '').toLowerCase();
+                    const email = (row.dataset.email || '').toLowerCase();
+                    const phone = (row.dataset.phone || '').toLowerCase();
                     
-                    if (!field1.includes(searchTerm) && 
-                        !category1.includes(searchTerm) && 
-                        !field2.includes(searchTerm)) {
-                        visible = false;
-                    }
-                }
-
-                // Status filter
-                if (statusFilter && row.dataset.status !== statusFilter) {
-                    visible = false;
-                }
-
-                // Category filter
-                if (category1Filter && row.dataset.category1 !== category1Filter) {
-                    visible = false;
-                }
-
-                // Date filter
-                if (dateFilter) {
-                    const entryDate = new Date(row.dataset.dateField);
-                    const today = new Date();
-                    let showEntry = false;
-
-                    switch (dateFilter) {
-                        case 'today':
-                            showEntry = entryDate.toDateString() === today.toDateString();
-                            break;
-                        case 'week':
-                            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-                            showEntry = entryDate >= weekAgo;
-                            break;
-                        case 'month':
-                            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-                            showEntry = entryDate >= monthAgo;
-                            break;
-                    }
-
-                    if (!showEntry) {
-                        visible = false;
-                    }
-                }
-
-                row.style.display = visible ? '' : 'none';
-                if (visible) visibleCount++;
+                    const matchesSearch = !searchTerm || 
+                        name.includes(searchTerm) || 
+                        institution.includes(searchTerm) || 
+                        email.includes(searchTerm) || 
+                        phone.includes(searchTerm);
+                    
+                    // Status filter
+                    const matchesStatus = !statusValue || row.dataset.status === statusValue;
+                    
+                    // Size filter
+                    const matchesSize = !sizeValue || row.dataset.size === sizeValue;
+                    
+                    // Date filter - improved logic
+                    // console.log(typeof(row.dataset.date))
+                    const matchesDate = isDateInRange(row.dataset.date, dateValue);
+                    
+                    return matchesSearch && matchesStatus && matchesSize && matchesDate;
+                });
+                
+                updateStatistics(filteredRows);
+                currentPage = 1; // Reset to first page when filtering
+                displayRows();
+            }
+            
+            // Display rows with pagination
+            function displayRows() {
+                const perPage = parseInt(perPageFilter.value);
+                const startIndex = (currentPage - 1) * perPage;
+                const endIndex = startIndex + perPage;
+                
+                // Hide all rows
+                allRows.forEach(row => row.style.display = 'none');
+                
+                // Show filtered rows for current page
+                filteredRows.slice(startIndex, endIndex).forEach(row => {
+                    row.style.display = '';
+                });
+                
+                // Update pagination info (if you have pagination controls)
+                updatePaginationInfo();
+            }
+            
+            function updatePaginationInfo() {
+                const perPage = parseInt(perPageFilter.value);
+                const totalPages = Math.ceil(filteredRows.length / perPage);
+                // You can add pagination controls here if needed
+                // console.log(`Showing page ${currentPage} of ${totalPages} (${filteredRows.length} total entries)`);
+            }
+            
+            // Event listeners
+            searchInput.addEventListener('input', filterRows);
+            statusFilter.addEventListener('change', filterRows);
+            sizeFilter.addEventListener('change', filterRows);
+            dateFilter.addEventListener('change', filterRows);
+            perPageFilter.addEventListener('change', () => {
+                currentPage = 1;
+                displayRows();
             });
-
-            document.getElementById('showingCount').textContent = visibleCount;
-        }
-
+            
+            // Initial display
+            updateStatistics(allRows);
+            displayRows();
+        });
+        
+        // Clear filters function
         function clearFilters() {
             document.getElementById('searchEntries').value = '';
             document.getElementById('statusFilter').value = '';
-            document.getElementById('category1Filter').value = '';
+            document.getElementById('sizeFilter').value = '';
             document.getElementById('dateFilter').value = '';
-            filterEntries();
+            document.getElementById('perPageFilter').value = '50';
+            
+            // Trigger filter update
+            document.getElementById('searchEntries').dispatchEvent(new Event('input'));
         }
-
+        
+        // Refresh page function
         function refreshPage() {
             location.reload();
         }
-
+        
+        // Export function (placeholder)
         function exportEntries() {
-            // Implement export functionality
+            // Implement export functionality here
             alert('Export functionality would be implemented here');
-        }
-
-        function bulkDelete() {
-            // Implement bulk delete functionality
-            alert('Bulk delete functionality would be implemented here');
         }
     </script>
 {% endblock %}

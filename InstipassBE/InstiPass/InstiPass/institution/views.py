@@ -24,8 +24,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-
-
+from .models import DemoBooking
+from administrator.models import DemoBookingTracker, ContactUsTracker
 from .utils import decode_application_token,generate_signup_token
 
 def get_client_ip(request):
@@ -46,10 +46,10 @@ class InstitutionViewSet(viewsets.ModelViewSet):
         institution = Institution.objects.filter(email = self.request.user.email)
         return institution
 
-    @method_decorator(ensure_csrf_cookie)
-    def list(self, request):
-        # Optionally list all students (or just forbid)
-        return Response({"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    # @method_decorator(ensure_csrf_cookie)
+    # # def list(self, request):
+    # #     # Optionally list all students (or just forbid)
+    # #     return Response({"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @method_decorator(ensure_csrf_cookie)
     def create(self, request):
@@ -111,9 +111,8 @@ class IdProcessStatsAPIView(APIView):
         institution = get_object_or_404(Institution,email = email)
         data = {
             "registered_students": Student.objects.filter(institution=institution).count(),
-            "Ids_in_Queue":len([id for id in IdOnQueue.objects.all() if id.student.institution==institution]),
-            "Ids_being_processed": len([id for id in IdInProcess.objects.all() if id.Id.student.institution==institution]),
-            "Ids_ready": len([id for id in IdReady.objects.all() if id.Id.Id.student.institution==institution]),
+            "Ids_being_processed": Student.objects.filter(institution=institution,status='id_processing').count(),
+            "Ids_ready": Student.objects.filter(institution=institution,status='id_ready').count(),
         }
         
         return Response(data=data)
@@ -192,11 +191,6 @@ class CreateSignupTokenAPIView(APIView):
         else:
             return Response({'detail': 'Token is invalid.'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-        
-
-
-
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     http_method_names = ['get','post']
@@ -205,3 +199,90 @@ class NotificationViewSet(viewsets.ModelViewSet):
         institution = get_object_or_404(Institution,email = self.request.user.email)
         return Notifications.objects.filter(recipient = institution)
     
+class ConfirmDemo(APIView):
+    def get(self, request, *args, **kwargs):
+        id = self.request.GET.get("pk")  
+        if not id:
+            return Response({'detail':'pk is required'},status=status.HTTP_400_BAD_REQUEST)
+        demo = DemoBooking.objects.filter(id = id)    
+        if demo.exists():
+            demo_obj = demo.last()
+            if demo_obj.status == 'CONFIRMED':
+                return Response({'detail':'session is already confirmed'},status=status.HTTP_409_CONFLICT)
+            demo_obj.status = 'CONFIRMED' 
+            demo_obj.save()
+            return Response({'detail':"Demo session confirmed"}, status=status.HTTP_200_OK)
+        else:
+            message.warning(self.request,"record does not exist")
+            return Response({'detail':'Demo session does not exist'},status=status.HTTP_404_NOT_FOUND)    
+
+class NewsLetterViewSet(viewsets.ModelViewSet):
+    queryset = NewsLetter.objects.all()
+    serializer_class = NewsLetterSerializer
+    http_method_names = ['post']
+
+class NotificationsViewSet(viewsets.ModelViewSet):
+    queryset = ContactUs.objects.all()
+    serializer_class = ContactUsSerializer
+    http_method_names = ['post']
+    @method_decorator(ensure_csrf_cookie)
+    def create(self, request):
+        fingerprint = request.data.get('fingerprint')
+        ip_address = get_client_ip(request)
+
+        # Block if fingerprint already submitted
+        if fingerprint and ContactUsTracker.objects.filter(fingerprint=fingerprint).count() >= 5 or ContactUsTracker.objects.filter(ip_address=ip_address).count()>=5:
+            messages
+            return Response({"detail": "Limit reached"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Block if no fingerprint but cookie exists
+        
+
+        serializer = ContactUsSerializer(data=request.data)
+        if serializer.is_valid():
+            print(serializer.is_valid())
+            serializer.save()
+            # Log submission tracker
+            ContactUsTracker.objects.create(
+                fingerprint=fingerprint or None,
+                ip_address=ip_address,
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            response = Response({"detail": "Message successfully."}, status=status.HTTP_201_CREATED)
+            return response
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)     
+       
+
+class DemoBookingViewSet(viewsets.ModelViewSet):
+    queryset = DemoBooking.objects.all()
+    serializer_class = DemoBookingSerializer
+    http_method_names=['post','get']
+    @method_decorator(ensure_csrf_cookie)
+    def create(self, request):
+        fingerprint = request.data.get('fingerprint')
+        ip_address = get_client_ip(request)
+
+        # Block if fingerprint already submitted
+        if fingerprint and DemoBookingTracker.objects.filter(fingerprint=fingerprint).count() >= 5 or DemoBookingTracker.objects.filter(ip_address=ip_address).count()>=5:
+            messages
+            return Response({"detail": "Limit reached"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Block if no fingerprint but cookie exists
+        
+
+        serializer = DemoBookingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            # Log submission tracker
+            DemoBookingTracker.objects.create(
+                fingerprint=fingerprint or None,
+                ip_address=ip_address,
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+
+            response = Response({"detail": "Demo sessioin booked successfuly"}, status=status.HTTP_201_CREATED)
+            return response
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    

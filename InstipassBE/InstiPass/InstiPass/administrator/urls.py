@@ -4,9 +4,7 @@ from .views import *
 
 
 router = DefaultRouter()
-router.register("contactus",NotificationsViewSet,basename = "adminNotificationAPI")
-router.register("newsletter",NewsLetterViewSet,basename = 'newsletterAPI')
-router.register('bookdemo',DemoBookingViewSet,basename="demobookingAPI")
+
 
 urlpatterns = [
     path("login",AdminLogin.as_view(),name="adminLogin"),
@@ -16,6 +14,7 @@ urlpatterns = [
     path("institutions",InstituttionsView.as_view(),name="institutions_admin"),
     path("institution/<int:pk>", InstitutionadminView.as_view(), name="institution_admin_detail"),
     path("logout",LogoutView.as_view(),name="adminLogout"),
+    path("contactus/delete/<int:pk>",DelteContactUsView.as_view(),name="delete_contactus"),
     path("students/", StudentsAdminView.as_view(),name="students_admin"),
     path("delete/institution/<int:pk>",DeleteInstitutionView.as_view(),name="delete_institution"),
     path("delete/student/<int:pk>/",DeleteStudentView.as_view(),name="delete_student"),
@@ -36,9 +35,14 @@ urlpatterns = [
     path("delete/demobooking/<int:pk>",DeleteDemoBooking.as_view(),name="delete_demobooking"),
     path("clear/demobookings",clear_demobooking),
     path("create/demosession", CreateDemoBooking.as_view(),name="admin_create_demosession"),
-    path("reschedule/demosession<int:pk>",UpdateDemoBooking.as_view(),name = "admin_reschedule_demosession"),
+    path("reschedule/demosession/<int:pk>",UpdateDemoBooking.as_view(),name = "admin_reschedule_demosession"),
     path('institution/signup/tracker',SignupTrackerView.as_view(), name="admin_signup_tracker"),
-    path("clear/signuptracker",clear_signuptracker)
+    path('demobooking/tracker',DemoBookingTrackerView.as_view(),name='demobooking_tracker'),
+    path('contactus/tracker',ContactUsTrackerView.as_view(),name='contactus_tracker'),
+    path("clear/signuptracker",clear_signuptracker),
+    path("clear/contactustracker",clear_contactustracker),
+    path("clear/demobookingtracker",clear_demobookingtracker),
+
     
 ]
 

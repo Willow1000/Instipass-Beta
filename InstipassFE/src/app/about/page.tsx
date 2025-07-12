@@ -7,7 +7,7 @@ import Footer from '../components/aboutFooter';
 import dynamic from 'next/dynamic';
 
 // Dynamically import BookDemoModal with ssr: false to prevent hydration issues
-const BookDemoModal = dynamic(() => import('../BookDemoModal'), { 
+const BookDemoModal = dynamic(() => import('../components/BookDemoModal'), { 
   ssr: false,
   loading: () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -24,11 +24,13 @@ const AboutPage = () => {
   const [visionVisible, setVisionVisible] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formRejected, setFormRejected] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
-  });
+      name: '',
+      email: '',
+      message: '',
+      fingerprint: null // Added fingerprint field
+    });
   const [formErrors, setFormErrors] = useState({});
   const [isBookDemoOpen, setIsBookDemoOpen] = useState(false);
   const contactRef = useRef(null);
@@ -41,7 +43,54 @@ const AboutPage = () => {
   
   // Particle animation
   const particlesRef = useRef(null);
+  const fingerprintScriptLoaded = useRef(false); // Track if fingerprint script is loaded
   
+  useEffect(() => {
+      const loadFingerprintJS = () => {
+        if (fingerprintScriptLoaded.current) return;
+        
+        // Create script element
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js';
+        script.async = true;
+        
+        script.onload = async () => {
+          fingerprintScriptLoaded.current = true;
+          try {
+            // Initialize FingerprintJS
+            const FingerprintJS = window.FingerprintJS;
+            const fp = await FingerprintJS.load();
+            const result = await fp.get();
+            
+            // Update form data with fingerprint
+            setFormData(prevData => ({
+              ...prevData,
+              fingerprint: result.visitorId
+            }));
+            
+          } catch (error) {
+          }
+        };
+        
+        script.onerror = () => {
+        };
+        
+        // Add script to document
+        document.head.appendChild(script);
+      };
+      
+      loadFingerprintJS();
+      
+      // Cleanup function
+      return () => {
+        if (fingerprintScriptLoaded.current) {
+          const script = document.querySelector('script[src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"]');
+          if (script) {
+            document.head.removeChild(script);
+          }
+        }
+      };
+    }, []);
   useEffect(() => {
     if (!particlesRef.current) return;
     
@@ -103,7 +152,7 @@ const AboutPage = () => {
         particlesArray[i].draw();
       }
       
-      requestAnimationFrame(animate);
+      requestAnimationFrame(animate); 
     };
     
     init();
@@ -164,7 +213,7 @@ const AboutPage = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
       
-      const response = await fetch("http://127.0.0.1:8000/super/api/contactus/", {
+      const response = await fetch("http://127.0.0.1:8000/institution/api/contactus/", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +229,6 @@ const AboutPage = () => {
       try {
         data = await response.json();
       } catch (parseError) {
-        console.error('Error parsing response:', parseError);
         throw new Error('Server returned an invalid response. Please try again later.');
       }
       
@@ -225,7 +273,7 @@ const AboutPage = () => {
     }
   };
   
-  const validateForm = async (e) => {
+ const validateForm = async (e) => {
     e.preventDefault();
     const errors = {};
     
@@ -251,7 +299,13 @@ const AboutPage = () => {
       
       try {
         // Send the message to the API
-        const result = await sendMessageToAPI(formData);
+        const dataToSend = {
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          fingerprint: formData.fingerprint // Added fingerprint to dataToSend
+        };
+        const result = await sendMessageToAPI(dataToSend);
         
         // Handle successful submission
         setSubmissionStatus('success');
@@ -261,7 +315,8 @@ const AboutPage = () => {
         setFormData({
           name: '',
           email: '',
-          message: ''
+          message: '',
+          fingerprint: formData.fingerprint // Keep the fingerprint
         });
         
         // Set form as submitted for UI feedback
@@ -275,9 +330,11 @@ const AboutPage = () => {
         }, 5000);
       } catch (error) {
         // Handle submission error
-        console.error('Form submission error:', error);
+     
         setSubmissionStatus('error');
         setSubmissionMessage(error.message || 'An error occurred while submitting your message. Please try again.');
+        setFormRejected(true)
+
       } finally {
         setIsSubmitting(false);
       }
@@ -1075,16 +1132,26 @@ const AboutPage = () => {
                 viewport={{ once: true }}
               >
                 <h3 className="text-2xl font-bold mb-6">Send Us a Message</h3>
-                
-                {formSubmitted ? (
+             
+                {formRejected ? ( 
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`p-6 rounded-lg ${
-                      submissionStatus === 'success' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}
+                    className={`p-6 rounded-lg  bg-red-500 `}
+                  >
+                    <div className="flex items-center mb-4">
+                    
+                        <AlertCircle size={24} className="mr-2" />
+                      <h4 className="font-bold">{submissionStatus === 'error' ? 'An Error occurred' : 'Error'}</h4>
+                    </div>
+                    <p>{submissionMessage}</p>
+                  </motion.div>
+                )
+                :(formSubmitted && submissionStatus =='success'? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-6 rounded-lg bg-green-100 text-green-800 `}
                   >
                     <div className="flex items-center mb-4">
                       {submissionStatus === 'success' ? (
@@ -1092,12 +1159,13 @@ const AboutPage = () => {
                       ) : (
                         <AlertCircle size={24} className="mr-2" />
                       )}
-                      <h4 className="font-bold">{submissionStatus === 'success' ? 'Thank You!' : 'Error'}</h4>
+                      <h4 className="font-bold"> Thank You!</h4>
                     </div>
                     <p>{submissionMessage}</p>
                   </motion.div>
                 ) : (
                   <form onSubmit={validateForm} className="space-y-6">
+                    <input type="hidden" name="fingerprint" id="fp-field" value={formData.fingerprint || ''} />
                     <div>
                       <label htmlFor="name" className="block mb-2 font-medium">Name</label>
                       <input
@@ -1177,7 +1245,7 @@ const AboutPage = () => {
                       )}
                     </motion.button>
                   </form>
-                )}
+                ))}
               </motion.div>
             </div>
           </div>
