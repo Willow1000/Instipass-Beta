@@ -1,3 +1,8 @@
+export const metadata= {
+  title: 'Invalid Request',
+  description:"Student Registration Failed"
+};
+
 import React from 'react';
 import { AlertTriangle, ArrowLeft, RefreshCw } from 'lucide-react';
 
@@ -6,13 +11,6 @@ const InvalidRequest = () => {
     window.history.back();
   };
 
-  const handleRefresh = () => {
-    window.location.reload();
-  };
-
-  const handleGoHome = () => {
-    window.location.href = '/';
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
@@ -30,15 +28,7 @@ const InvalidRequest = () => {
         <div className="space-y-3">
          
           
-          {/* <button
-            onClick={handleRefresh}
-            className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh Page
-          </button> */}
-
-         
+       
         </div>
 
         <div className="mt-6 pt-6 border-t border-gray-200">

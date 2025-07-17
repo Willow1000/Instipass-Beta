@@ -5,6 +5,7 @@ import { Send, ChevronDown, ChevronUp, Users, Eye, Mail, MessageSquare, Check, S
 import Navbar from '../components/aboutNavbar';
 import Footer from '../components/aboutFooter';
 import dynamic from 'next/dynamic';
+import ParallaxHero from '../components/ParallaxHero';
 
 // Dynamically import BookDemoModal with ssr: false to prevent hydration issues
 const BookDemoModal = dynamic(() => import('../components/BookDemoModal'), { 
@@ -91,77 +92,6 @@ const AboutPage = () => {
         }
       };
     }, []);
-  useEffect(() => {
-    if (!particlesRef.current) return;
-    
-    const canvas = particlesRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas dimensions
-    const setCanvasDimensions = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    
-    setCanvasDimensions();
-    window.addEventListener('resize', setCanvasDimensions);
-    
-    // Create particles
-    const particlesArray = [];
-    const numberOfParticles = 30;
-    
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = Math.random() * 0.5 - 0.25;
-        this.speedY = Math.random() * 0.5 - 0.25;
-        this.color = darkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(42, 157, 143, 0.2)';
-      }
-      
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        
-        if (this.x > canvas.width) this.x = 0;
-        if (this.x < 0) this.x = canvas.width;
-        if (this.y > canvas.height) this.y = 0;
-        if (this.y < 0) this.y = canvas.height;
-      }
-      
-      draw() {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    
-    const init = () => {
-      for (let i = 0; i < numberOfParticles; i++) {
-        particlesArray.push(new Particle());
-      }
-    };
-    
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      for (let i = 0; i < particlesArray.length; i++) {
-        particlesArray[i].update();
-        particlesArray[i].draw();
-      }
-      
-      requestAnimationFrame(animate); 
-    };
-    
-    init();
-    animate();
-    
-    return () => {
-      window.removeEventListener('resize', setCanvasDimensions);
-    };
-  }, [darkMode]);
   
   // Initialize dark mode from localStorage and listen for theme changes
   useEffect(() => {
@@ -467,15 +397,12 @@ const AboutPage = () => {
       
       <main className="flex-grow overflow-x-hidden">
         {/* Hero Section - Enhanced with more product details */}
-        <section className={`relative py-20 ${darkMode ? 'bg-gray-800' : 'bg-[#1D3557]'} text-white overflow-hidden`}>
+        <section className={`relative  ${darkMode ? 'bg-gray-800' : 'bg-[#1D3557] mt-16'} text-white overflow-hidden min-h-full  pb-14`}>
           {/* Animated background particles */}
-          <canvas 
-            ref={particlesRef}
-            className="absolute top-0 left-0 w-full h-full"
-          />
+          <ParallaxHero darkMode={darkMode}/>
           
-          <div className="container mx-auto px-6 relative z-10">
-            <div className="flex flex-col md:flex-row items-center">
+          <div className="container mx-auto px-6 z-10 my-auto absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col md:flex-row items-center my-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -555,20 +482,7 @@ const AboutPage = () => {
             </div>
           </div>
           
-          <motion.div 
-            className="absolute bottom-0 left-0 right-0 flex justify-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.5 }}
-          >
-            <button 
-              onClick={scrollToContact}
-              className="mb-8 text-white flex flex-col items-center"
-            >
-              <span className="mb-2 text-sm">Contact Us</span>
-              <ChevronDown size={20} className="animate-bounce" />
-            </button>
-          </motion.div>
+       
         </section>
         
         {/* About Section with Mission and Vision */}

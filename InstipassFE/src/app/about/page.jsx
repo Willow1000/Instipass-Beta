@@ -1,12 +1,12 @@
 // app/page.jsx (Server Component — allowed to export metadata)
 
 export const metadata= {
-  title: 'Home',
-  description:"Instipass Homepage"
+  title: 'About',
+  description:"Instipass About Page"
 };
 
-import HomePage from './pages/home'
+import AboutPage from '../pages/about'
 
 export default function Page() {
-  return <HomePage />;
+  return <AboutPage />;
 }

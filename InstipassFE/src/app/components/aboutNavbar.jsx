@@ -60,7 +60,7 @@ const AboutNavbar = () => {
        ${scrolled ? 'shadow-lg' : 'shadow-md'} text-${darkMode ? 'white'  : 'gray-900'} ${darkMode? '': 'bg-[#1D3557]'}`}
     >
       <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center">
+        <div className={`${darkMode?'hidden md:flex':'flex'}  items-center`}>
           <div className="w-10 h-10 rounded-full bg-[#1D3557] text-white flex items-center justify-center mr-3">
             <CreditCard size={20} />
           </div>
@@ -100,22 +100,27 @@ const AboutNavbar = () => {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="flex md:hidden items-center space-x-4 ">
-          <button 
-            onClick={toggleDarkMode}
-            className={`p-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`p-2 rounded-md ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
-            aria-label="Toggle mobile menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+        <div className={`flex ${darkMode?"justify-between":"gap-28"} align-middle  md:hidden min-w-full`}>
+          {/* ({darkMode?
+          div:''}) */}
+          <div className=""> </div>
+          <div className="flex space-x-4">
+            <button
+              onClick={toggleDarkMode}
+              className={`p-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`p-2 rounded-md ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </div>
 

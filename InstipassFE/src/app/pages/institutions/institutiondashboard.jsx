@@ -33,7 +33,7 @@ import {
   Copy,
   Edit2, 
   Share2,
-  CalendarDays
+
 } from 'lucide-react';
 import {
   LineChart,
@@ -52,8 +52,9 @@ import {
   Cell
 } from 'recharts';
 
-// API endpoint
-const API_URL = 'http://127.0.0.1:8000/institution/api/students';
+// API endpoints
+const STUDENTS_API_URL = 'http://127.0.0.1:8000/institution/api/students';
+const INSTITUTION_API_URL = 'http://127.0.0.1:8000/institution/api/institution';
 
 const COLORS = { 
   processing: '#3B82F6', // blue-500
@@ -122,6 +123,24 @@ const fetcher = async ([url, token]) => {
   return response.json();
 };
 
+// Custom hook to fetch institution data
+const useInstitutionData = (token) => {
+  const { data: institutionData, error: institutionError, isLoading: institutionLoading } = useSWR(
+    token ? [INSTITUTION_API_URL, token] : null, 
+    fetcher, 
+    {
+      refreshInterval: 300000, // Refresh every 5 minutes
+      revalidateOnFocus: false, // Don't refetch on window focus for institution data
+    }
+  );
+
+  return {
+    institutionData,
+    institutionError,
+    institutionLoading
+  };
+};
+
 // StatCard component
 const StatCard = ({ title, value, icon, change, changeType, unit, darkMode }) => (
   <motion.div 
@@ -137,7 +156,7 @@ const StatCard = ({ title, value, icon, change, changeType, unit, darkMode }) =>
     </div>
     <div>
       <h3 className={`text-2xl md:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-        {value}{unit && <span className="text-base md:text-lg ml-1">{unit}</span>}
+        {value}{unit && <span className="text-base md:text-lg ml-1">{un}</span>}
       </h3>
       {change && (
         <p className={`text-xs mt-1 ${changeType === 'positive' ? 'text-green-500' : 'text-red-500'}`}>
@@ -274,24 +293,48 @@ const StatisticsPage = ({ students, darkMode, loading, error, onCourseClick, onY
 
 // Main Dashboard Component
 const InstitutionDashboard = () => {
+  // Initialize token synchronously
+  const initialToken = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  const [token, setToken] = useState(initialToken);
+
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePage, setActivePage] = useState('dashboard'); 
 
-  // Get token from localStorage
-  const [token, setToken] = useState(null);
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setToken(localStorage.getItem('access_token'));
-    }
-  }, []);
-
   // Use SWR for data fetching
-  const { data: students, error, isLoading, mutate } = useSWR(token ? [API_URL, token] : null, fetcher, {
+  const { data: students, error, isLoading, mutate } = useSWR(token ? [STUDENTS_API_URL, token] : null, fetcher, {
     refreshInterval: 30000, // Poll every 30 seconds
     revalidateOnFocus: true,
   });
+
+  // Fetch institution data
+  const { institutionData, institutionError, institutionLoading } = useInstitutionData(token);
+
+  // Logout function
+  const handleLogout = useCallback(() => {
+    try {
+      // Clear access token from localStorage
+      localStorage.removeItem('access_token');
+      
+      // Clear refresh token from cookies
+      deleteCookie('refresh_token');
+      
+      // Clear any other stored data
+      localStorage.removeItem('instipass-theme');
+      
+      // Redirect to login page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/institution/login';
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Still redirect even if there's an error
+      if (typeof window !== 'undefined') {
+        window.location.href = '/institution/login';
+      }
+    }
+  }, []);
 
   // Derived stats from API data
   const statsData = useMemo(() => {
@@ -492,11 +535,15 @@ const InstitutionDashboard = () => {
     </div>;
   };
   
-  const NavItem = ({ icon, label, pageName, isMobile = false }) => (
+  const NavItem = ({ icon, label, pageName, isMobile = false, onClick }) => (
     <button 
         onClick={() => { 
-            setActivePage(pageName); 
-            if(isMobile) toggleMobileMenu(); 
+            if (onClick) {
+              onClick();
+            } else {
+              setActivePage(pageName); 
+              if(isMobile) toggleMobileMenu(); 
+            }
         }}
         className={`w-full flex items-center p-3 rounded-lg transition-colors 
             ${activePage === pageName 
@@ -519,6 +566,22 @@ const InstitutionDashboard = () => {
         setTimeout(() => setShowShareModal(false), 2000);
       })
       .catch(err => console.error('Failed to copy link: ', err));
+  };
+
+  // Get institution logo or fallback to default
+  const getProfileImage = () => {
+    if (institutionData && institutionData.logo) {
+      return institutionData.logo;
+    }
+    return "https://i.pravatar.cc/40?u=admin"; // Fallback to default
+  };
+
+  // Get institution name or fallback to default
+  const getProfileName = () => {
+    if (institutionData && institutionData.name) {
+      return institutionData.name;
+    }
+    return "Admin User"; // Fallback to default
   };
 
   return (
@@ -565,7 +628,7 @@ const InstitutionDashboard = () => {
               )}
               <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
-            <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" />
+            <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" onClick={handleLogout} />
           </div>
         </motion.aside>
       )}
@@ -605,7 +668,7 @@ const InstitutionDashboard = () => {
                     </svg>
                   )}
                 </button>
-                <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" />
+                <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" onClick={handleLogout} />
             </div>
         </motion.aside>
       )}
@@ -664,7 +727,7 @@ const InstitutionDashboard = () => {
                       )}
                       <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
                     </button>
-                    <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" isMobile={true} />
+                    <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" isMobile={true} onClick={handleLogout} />
                 </div>
             </motion.aside>
         )}
@@ -722,8 +785,21 @@ const InstitutionDashboard = () => {
                 </AnimatePresence>
             </div>
             <div className="flex items-center">
-                <img src="https://i.pravatar.cc/40?u=admin" alt="Admin User" className="w-8 h-8 rounded-full object-cover"/>
-                <span className="ml-2 hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">Admin User</span>
+                
+              <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
+            
+              <img 
+                src={getProfileImage()} 
+                alt={getProfileName()} 
+                className="w-8 h-8 rounded-full object-cover"
+                onError={(e) => {
+                  e.target.src = "https://i.pravatar.cc/40?u=admin"; // Fallback on error
+                }}
+              />
+                
+                <span className="ml-2 hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
+                   {getProfileName()}
+                </span>
             </div>
           </div>
         </header>
@@ -951,13 +1027,12 @@ const DashboardMainContent = ({ statsData, students, loading, error, darkMode, h
                 <TableHeader label="Registration ID" sortKey="reg_no" />
                 <TableHeader label="Submission Date" sortKey="created_at" />
                 <TableHeader label="Status" sortKey="status" />
-                <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="p-4 text-center">
+                  <td colSpan="4" className="p-4 text-center">
                     <div className="flex justify-center items-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-teal-500 mr-3"></div>
                       <span>Loading student data...</span>
@@ -980,17 +1055,10 @@ const DashboardMainContent = ({ statsData, students, loading, error, darkMode, h
                       {getStatusInfo(student.status).label}
                     </span>
                   </td>
-                  <td className="p-3 whitespace-nowrap">
-                    {student.status === 'id_ready' && (
-                      <button className="p-1.5 rounded-lg text-xs flex items-center bg-teal-500 hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-500 text-white transition-colors">
-                        <Download size={14} className="mr-1" /> Download ID
-                      </button>
-                    )}
-                  </td>
                 </tr>
               )) : (
                 <tr>
-                    <td colSpan="5" className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                    <td colSpan="4" className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
                         No students found matching your criteria.
                     </td>
                 </tr>
@@ -1030,6 +1098,10 @@ function setCookie(name, value, days) {
   document.cookie = name + "=" + (value || "") + expires + "; path=/";
 }
 
+function deleteCookie(name) {
+  document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
 async function handleTokenRefresh() {
   const refreshToken = getCookie("refresh_token");
 
@@ -1066,5 +1138,4 @@ async function handleTokenRefresh() {
     return null;
   }
 }
-
 

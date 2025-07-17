@@ -34,6 +34,7 @@ def get_client_ip(request):
 
 class InstitutionsViewSet(viewsets.ModelViewSet):
     serializer_class = InstitutionSerializer
+    # permission_classes = [IsAdminUser]
     http_method_names = ['get']
     queryset = Institution.objects.all()
 

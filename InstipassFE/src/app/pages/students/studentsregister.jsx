@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import TokenProtectedPage from '../components/TEST'
+import TokenProtectedPage from '../../components/TokenProtected'
 
 const StudentRegistrationForm = () => {
   const [darkMode, setDarkMode] = useState(false);

@@ -82,13 +82,25 @@ const TokenProtectedPage = ({
 
   // Uncomment this if you want auto-redirect functionality
   useEffect(() => {
-    if (tokenStatus === 'invalid' && window.location.pathname.includes("institution")) {
+    if(tokenStatus === 'invalid' && window.location.pathname.includes("institution/signup")){
+      console.log('iko')
+      const timeoutId = setTimeout(() => {
+        window.location.href = '/tutorials';
+      }, 3000);
+      return () => clearTimeout(timeoutId);
+    }else if(tokenStatus === 'invalid' && window.location.pathname.includes("institution/signup")){
       const timeoutId = setTimeout(() => {
         window.location.href = '/institution/login';
       }, 3000);
-      
-      return () => clearTimeout(timeoutId);
+      return () => clearTimeout(timeoutId); 
+    }else if(tokenStatus === 'invalid' && window.location.pathname.includes("students")){
+      const timeoutId = setTimeout(() => {
+        window.location.href = '/students/invalidrequest';
+      }, 3000);
+      return () => clearTimeout(timeoutId); 
     }
+      
+    
   }, [tokenStatus, redirectUrl]);
 
   // Loading state

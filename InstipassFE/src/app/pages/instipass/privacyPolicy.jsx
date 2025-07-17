@@ -15,13 +15,13 @@ const PrivacyPolicy = () => {
       setDarkMode(savedTheme === 'dark');
       
       // Listen for theme changes from 
-      const handleThemeChange = (event: CustomEvent) => {
+      const handleThemeChange = (event) => {
         setDarkMode(event.detail.darkMode);
       };
       
-      window.addEventListener('themeChange', handleThemeChange as EventListener);
+      window.addEventListener('themeChange', handleThemeChange);
       return () => {
-        window.removeEventListener('themeChange', handleThemeChange as EventListener);
+        window.removeEventListener('themeChange', handleThemeChange);
       };
     }
   }, []);

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, LogIn, Lock, Mail, AlertCircle, WifiOff, Server, Clock } from 'lucide-react';
 import Cookies from 'js-cookie'; // Import js-cookie library for cookie management
 
-const Login = () => {
+const InstitutionLogin = () => {
   const router = useRouter(); // Initialize router for navigation
   const [darkMode, setDarkMode] = useState(false);
   const [email, setEmail] = useState('');
@@ -364,4 +364,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default InstitutionLogin;

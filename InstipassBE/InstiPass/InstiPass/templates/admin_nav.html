@@ -119,6 +119,11 @@
         transform: translateX(5px);
     }
 
+    .dropdown-item.active {
+        background-color: var(--accent-color);
+        color: white;
+    }
+
     .dropdown-item .nav-icon {
         font-size: 1rem;
         width: 1.2rem;
@@ -217,7 +222,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <!-- Institutions Link -->
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{% url 'institutions_admin' %}">
+                    <a class="nav-link" aria-current="page" href="{% url 'institutions_admin' %}" data-page="institutions_admin">
                         <i class="bi bi-building nav-icon"></i>
                         Institutions
                     </a>
@@ -225,25 +230,25 @@
                 
                 <!-- Tokens & Access Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-dropdown="tokens">
                         <i class="bi bi-key nav-icon"></i>
                         Tokens & Access
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item" href="{% url 'apiAccess' %}">
+                            <a class="dropdown-item" href="{% url 'apiAccess' %}" data-page="apiAccess">
                                 <i class="bi bi-file-earmark-code nav-icon"></i>
                                 API Access Logs
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{% url 'institution_token' %}">
+                            <a class="dropdown-item" href="{% url 'institution_token' %}" data-page="institution_token">
                                 <i class="bi bi-person-badge nav-icon"></i>
                                 Student Token
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{% url 'institution_signup_token' %}">
+                            <a class="dropdown-item" href="{% url 'institution_signup_token' %}" data-page="institution_signup_token">
                                 <i class="bi bi-building-add nav-icon"></i>
                                 Institution Token
                             </a>
@@ -253,37 +258,37 @@
 
                 <!-- Tracking & Logs Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-dropdown="tracking">
                         <i class="bi bi-graph-up nav-icon"></i>
                         Tracking & Logs
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item" href="{% url 'admin_signup_tracker' %}">
+                            <a class="dropdown-item" href="{% url 'admin_signup_tracker' %}" data-page="admin_signup_tracker">
                                 <i class="bi bi-clipboard-data nav-icon"></i>
                                 Signup Tracker
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{% url 'institution_registration_tracker' %}">
+                            <a class="dropdown-item" href="{% url 'institution_registration_tracker' %}" data-page="institution_registration_tracker">
                                 <i class="bi bi-journal-text nav-icon"></i>
                                 Institution Logs
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{% url 'student_registration_tracker' %}">
+                            <a class="dropdown-item" href="{% url 'student_registration_tracker' %}" data-page="student_registration_tracker">
                                 <i class="bi bi-person-lines-fill nav-icon"></i>
                                 Student Logs
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{% url 'demobooking_tracker' %}">
+                            <a class="dropdown-item" href="{% url 'demobooking_tracker' %}" data-page="demobooking_tracker">
                                 <i class="bi bi-person-lines-fill nav-icon"></i>
                                 Demo Booking Tracker
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{% url 'contactus_tracker' %}">
+                            <a class="dropdown-item" href="{% url 'contactus_tracker' %}" data-page="contactus_tracker">
                                 <i class="bi bi-person-lines-fill nav-icon"></i>
                                ContactUs Tracker
                             </a>
@@ -293,7 +298,7 @@
 
                 <!-- Demo Bookings Link -->
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'admin_demobooking' %}">
+                    <a class="nav-link" href="{% url 'admin_demobooking' %}" data-page="admin_demobooking">
                         <i class="bi bi-calendar-check nav-icon"></i>
                         Demo Bookings
                     </a>
@@ -301,7 +306,7 @@
 
                 <!-- Messages Link -->
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'admin_contactus' %}">
+                    <a class="nav-link" href="{% url 'admin_contactus' %}" data-page="admin_contactus">
                         <i class="bi bi-chat-left-text nav-icon"></i>
                         Messages
                     </a>
@@ -328,9 +333,79 @@
 <!-- Required Bootstrap Icons CSS -->
 <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"> -->
 
-<!-- Theme Toggle JavaScript -->
+<!-- Active Link Management and Theme Toggle JavaScript -->
 <script>
     document.documentElement.setAttribute('data-bs-theme', 'dark');
+    
+    // Active Link Management
+    document.addEventListener('DOMContentLoaded', function() {
+        setActiveNavLink();
+    });
+
+    function setActiveNavLink() {
+        // Get current URL path
+        const currentPath = window.location.pathname;
+        
+        // Remove active class from all nav links and dropdown items
+        document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        // Find matching nav link or dropdown item
+        let activeFound = false;
+        
+        // Check dropdown items first (more specific)
+        document.querySelectorAll('.dropdown-item[data-page]').forEach(item => {
+            const pageName = item.getAttribute('data-page');
+            if (currentPath.includes(pageName) || currentPath.endsWith('/' + pageName + '/')) {
+                item.classList.add('active');
+                // Also mark the parent dropdown as active
+                const parentDropdown = item.closest('.dropdown').querySelector('.dropdown-toggle');
+                if (parentDropdown) {
+                    parentDropdown.classList.add('active');
+                }
+                activeFound = true;
+            }
+        });
+        
+        // If no dropdown item matched, check main nav links
+        if (!activeFound) {
+            document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+                const pageName = link.getAttribute('data-page');
+                if (currentPath.includes(pageName) || currentPath.endsWith('/' + pageName + '/')) {
+                    link.classList.add('active');
+                    activeFound = true;
+                }
+            });
+        }
+        
+        // Alternative method: Check by href attribute if data-page method doesn't work
+        if (!activeFound) {
+            document.querySelectorAll('.nav-link[href], .dropdown-item[href]').forEach(link => {
+                const href = link.getAttribute('href');
+                // Skip template URLs and external links
+                if (href && !href.includes('{%') && !href.startsWith('http')) {
+                    if (currentPath === href || currentPath.startsWith(href + '/')) {
+                        link.classList.add('active');
+                        // If it's a dropdown item, also mark parent dropdown as active
+                        if (link.classList.contains('dropdown-item')) {
+                            const parentDropdown = link.closest('.dropdown').querySelector('.dropdown-toggle');
+                            if (parentDropdown) {
+                                parentDropdown.classList.add('active');
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Optional: Update active link when navigating via AJAX (if your app uses AJAX navigation)
+    function updateActiveLink() {
+        setActiveNavLink();
+    }
+
+    // Theme Toggle JavaScript (commented out as per original)
     // document.addEventListener('DOMContentLoaded', function() {
     //     // Check for saved theme preference
     //     const savedTheme = localStorage.getItem('instipass-theme');

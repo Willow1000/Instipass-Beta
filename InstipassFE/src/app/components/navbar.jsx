@@ -71,7 +71,7 @@ const HomeNavbar = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden lg:flex space-x-6">
-          <Link href="/tutorials" className="hover:text-[#2A9D8F] transition-colors flex items-center dark:text-white">
+          <Link href="/tutorials" className="hover:text-[#2A9D8F] transition-colors flex items-center dark:text-white" target="_blank" rel="noopener noreferrer">
             <BarChart size={16} className="mr-1" /> Tutorials
           </Link>
           <Link href="#institution-benefits" className="hover:text-[#2A9D8F] transition-colors flex items-center dark:text-white">
