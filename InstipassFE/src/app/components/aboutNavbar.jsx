@@ -85,6 +85,11 @@ const AboutNavbar = () => {
         
         {/* Desktop Action Buttons */}
         <div className="hidden md:flex items-center space-x-4">
+          
+          
+          <Link href="/institution/login" className="px-4 py-2  rounded-md  text-white hover:bg-opacity-90 transition-colors dark:bg-[#1D3557] hover:bg-[#2A9D8F]">
+            Sign In
+          </Link>
           <button 
             onClick={toggleDarkMode}
             className={`p-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
@@ -93,14 +98,10 @@ const AboutNavbar = () => {
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           
-          <Link href="/institution/login" className="px-4 py-2  rounded-md  text-white hover:bg-opacity-90 transition-colors dark:bg-[#1D3557] hover:bg-[#2A9D8F]">
-            Sign In
-          </Link>
-          
         </div>
 
         {/* Mobile Menu Button */}
-        <div className={`flex ${darkMode?"justify-between":"gap-28"} align-middle  md:hidden min-w-full`}>
+        <div className={`flex ${darkMode?"justify-between":"gap-24"} align-middle  md:hidden min-w-full`}>
           {/* ({darkMode?
           div:''}) */}
           <div className=""> </div>
