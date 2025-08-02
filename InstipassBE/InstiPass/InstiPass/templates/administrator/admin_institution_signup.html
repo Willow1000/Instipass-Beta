@@ -194,12 +194,12 @@
                 },
                 body: JSON.stringify({ email: email })
             })
-            getCookie
             .then(response => response.json())
             .then(data => {
                 console.log("Success:", data);
                 // Handle success, e.g., close modal, show message, refresh table
-                const modal = bootstrap.Modal.getInstance(document.getElementById("generateTokenModal"));
+                const modalElement = document.getElementById("generateTokenModal");
+                const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
                 modal.hide();
                 refreshPage(); // Refresh the page to show the new token
             })
@@ -230,3 +230,4 @@
     </script>
 
 {% endblock %}
+

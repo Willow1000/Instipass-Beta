@@ -402,15 +402,15 @@ def send_contact_confirmation(sender,instance,created,**kwargs):
     plain_message = strip_tags(html_message)
     
     # Send the email with both HTML and plain text versions
-    # return send_mail(
-    #     subject=subject,
-    #     message=plain_message,  # Plain text version
-    #     from_email="support@instipass.com",  # Updated from admin@django.com for branding consistency
-    #     recipient_list=[instance.email],
-    #     html_message=html_message,  # HTML version
-    #     fail_silently=False
-    # )
-    return sendmail(to = instance.email,subject=subject,context=context,from_email="noreply@instipass.com",template_name=template_name)
+    return send_mail(
+        subject=subject,
+        message=plain_message,  # Plain text version
+        from_email="support@instipass.com",  # Updated from admin@django.com for branding consistency
+        recipient_list=[instance.email],
+        html_message=html_message,  # HTML version
+        fail_silently=False
+    )
+    # return sendmail(to = instance.email,subject=subject,context=context,from_email="noreply@instipass.com",template_name=template_name)
 
 def to_google_calendar_format(dt: datetime) -> str:
     if dt.tzinfo is None:

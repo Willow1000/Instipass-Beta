@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Check, X } from 'lucide-react';
-import TokenProtectedPage from '@/app/components/TEST';
+import TokenProtectedPage from '../../components/TokenProtected';
 import axios from 'axios';
 
 const InstitutionRegister = () => {
@@ -178,7 +178,7 @@ const InstitutionRegister = () => {
         
         // Redirect to login page after successful registration
         setTimeout(() => {
-          window.location.href = '/institution/login';
+          window.location.href = '/institution/signup/success';
         }, 2000);
         
       } catch (error) {
