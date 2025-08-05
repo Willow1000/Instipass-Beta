@@ -6,4 +6,4 @@ class AppConfig(AppConfig):
     name = 'accounts'
 
     def ready(self):
-        from .signals import send_signup_link, welcome_mail
+        from .signals import send_signup_link, welcome_mail, log_user_delete

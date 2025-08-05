@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404
 import json
 from .models import ContactUsTracker,DemoBookingTracker
 from django.contrib import messages
-from logs.models import APIAccessLog,AdminActionsLog
+from logs.models import APIAccessLog,AdminActionsLog,BlackListLog
 from .serializers import *
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import InstitutionSignupToken, SignupTracker
@@ -25,6 +25,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.views.decorators.csrf import ensure_csrf_cookie
 from institution.views import get_client_ip
+from django.http import HttpResponseForbidden
+from accounts.models import User
 
 
 # Create your views here.
@@ -124,11 +126,9 @@ class DeleteStudentView(UserPassesTestMixin,LoginRequiredMixin,DeleteView):
     model = Student
     login_url = reverse_lazy('adminLogin')
     def test_func(self):
-
         return self.request.user.is_superuser
     def get_success_url(self):
         next_url = self.request.GET.get('next')
-        print(next_url)
         return next_url 
 
 class StudentsAdminView(UserPassesTestMixin,LoginRequiredMixin,ListView):
@@ -175,6 +175,60 @@ class ApiAccessView(UserPassesTestMixin,LoginRequiredMixin,ListView):
 
     def test_func(self):
         return self.request.user.is_superuser      
+
+
+
+login_required
+@user_passes_test(lambda u: u.is_superuser)
+def blacklist_manager(request, institution_email):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            reason_category = data.get("reason_category")
+            reason_explanation = data.get("reason_explanation")
+            action_type = data.get("action") # 'blacklist' or 'unblacklist'
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON in request body"}, status=400)
+
+        if not reason_category or not reason_explanation or not action_type:
+            return JsonResponse({"error": "Reason category, explanation, and action are required."}, status=400)
+
+        user_to_manage = get_object_or_404(User, email=institution_email)
+
+        if user_to_manage == request.user:
+            return JsonResponse({"error": "You can't blacklist/unblacklist yourself."}, status=403)
+
+        # Determine action based on current state and requested action_type
+        if action_type == "blacklist":
+            if not user_to_manage.is_active:
+                return JsonResponse({"message": f"{user_to_manage.email} is already blacklisted."}, status=200)
+            user_to_manage.is_active = False
+            action_log = "blacklisted"
+            success_message = f"{user_to_manage.email} has been blacklisted."
+        elif action_type == "unblacklist":
+            if user_to_manage.is_active:
+                return JsonResponse({"message": f"{user_to_manage.email} is not blacklisted."}, status=200)
+            user_to_manage.is_active = True
+            action_log = "unblacklisted"
+            success_message = f"{user_to_manage.email} has been removed from the blacklist."
+        else:
+            return JsonResponse({"error": "Invalid action type provided."}, status=400)
+
+        user_to_manage.save()
+
+        # Log the action
+        BlackListLog.objects.create(
+            action=action_log,
+            admin=request.user,
+            victim=user_to_manage,
+            reason_category=reason_category,
+            reason_explanation=reason_explanation
+        )
+
+        # Use JsonResponse for AJAX requests
+        return JsonResponse({"message": success_message, "is_active": user_to_manage.is_active}, status=200)
+
+    return HttpResponseForbidden("Only POST requests are allowed.")
 
 
 
@@ -457,7 +511,7 @@ class DemoBookingTrackerView(LoginRequiredMixin,UserPassesTestMixin,ListView):
     template_name = 'administrator/admin_demobooking_tracker.html'
     model = DemoBookingTracker
     context_object_name = 'trackers'
-    login_url = reverse_lazy('adminLOgin')    
+    login_url = reverse_lazy('adminLogin')    
     def test_func(self):
        return self.request.user.is_superuser  
 
@@ -477,3 +531,20 @@ class DelteContactUsView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
 
     def test_func(self):
         return self.request.user.is_superuser
+
+class UserView(LoginRequiredMixin,UserPassesTestMixin,ListView):
+    model = User
+    template_name = "administrator/admin_user_view.html"
+    context_object_name = 'users'
+    login_url = reverse_lazy('adminLogin')    
+    def test_func(self):
+       return self.request.user.is_superuser
+
+class DeleteUserView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
+    model = User
+    login_url = reverse_lazy('adminLogin')
+    def test_func(self):
+        return self.request.user.is_superuser
+    def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        return next_url 

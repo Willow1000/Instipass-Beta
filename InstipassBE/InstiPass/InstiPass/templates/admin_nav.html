@@ -229,12 +229,18 @@
                 </li>
                 
                 <!-- Tokens & Access Dropdown -->
-                <li class="nav-item dropdown">
+                <li class="nav-item dropdown z-3">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-dropdown="tokens">
                         <i class="bi bi-key nav-icon"></i>
                         Tokens & Access
                     </a>
                     <ul class="dropdown-menu">
+                         <li>
+                            <a class="dropdown-item" href="{% url 'user_management' %}" data-page="apiAccess">
+                                <i class="bi bi-person nav-icon"></i>
+                                User Management
+                            </a>
+                        </li>
                         <li>
                             <a class="dropdown-item" href="{% url 'apiAccess' %}" data-page="apiAccess">
                                 <i class="bi bi-file-earmark-code nav-icon"></i>
@@ -257,7 +263,7 @@
                 </li>
 
                 <!-- Tracking & Logs Dropdown -->
-                <li class="nav-item dropdown">
+                <li class="nav-item dropdown z-3">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-dropdown="tracking">
                         <i class="bi bi-graph-up nav-icon"></i>
                         Tracking & Logs

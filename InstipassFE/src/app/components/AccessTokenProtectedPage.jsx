@@ -75,15 +75,15 @@ const AccessTokenProtectedPage = ({
   }, [apiEndpoint]);
 
   // Uncomment this if you want auto-redirect functionality
-  // useEffect(() => {
-  //   if (tokenStatus === 'invalid') {
-  //     const timeoutId = setTimeout(() => {
-  //       window.location.href = redirectUrl;
-  //     }, 3000);
+  useEffect(() => {
+    if (tokenStatus === 'invalid') {
+      const timeoutId = setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 3000);
       
-  //     return () => clearTimeout(timeoutId);
-  //   }
-  // }, [tokenStatus, redirectUrl]);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [tokenStatus, redirectUrl]);
 
   // Loading state
   if (tokenStatus === 'validating') {
@@ -122,18 +122,10 @@ const AccessTokenProtectedPage = ({
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
            
             <p className="text-gray-600 text-sm">
-              Please log in
+              Redirecting to login
             </p>
           </div>
           
-          <div className="space-y-3">
-            <button
-              onClick={() => window.location.href = redirectUrl}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
-            >
-              Go to Login
-            </button>
-          </div>
         </div>
       </div>
     );

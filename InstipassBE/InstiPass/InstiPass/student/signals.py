@@ -267,7 +267,7 @@ def update_student(sender, instance, created, **kwargs):
 
 
 @receiver(post_delete,sender=Student,dispatch_uid="student_deleted")
-def delete_student(sender,instance,created,**kwargs):
+def delete_student(sender,instance,**kwargs):
     request = get_current_request()
     user = request.user if request else None
     AdminActionsLog.objects.create(

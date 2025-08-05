@@ -46,4 +46,27 @@ class AdminActionsLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.admin}"
+        return f"{self.admin} {self.action} {self.victim}"
+
+class BlackListLog(models.Model):
+    REASON_CATEGORY_CHOICES = [
+    ("invalid_docs", "Invalid or fake documentation"),
+    ("payment_issue", "Payment not received"),
+    ("fraud_suspected", "Fraud suspected"),
+    ("policy_violation", "Violated platform policies"),
+    ("inactivity", "Long-term inactivity"),
+    ("manual_flag", "Flagged after manual review"),
+    ("support_request", "Institution requested suspension"),
+    ("other", "Other"),
+]
+
+    id = models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
+    action = models.CharField(max_length=30)
+    admin = models.ForeignKey(User,on_delete = models.CASCADE,null=True,related_name="admin_blacklisting")
+    victim = models.ForeignKey(User,on_delete = models.CASCADE,null=True,related_name="user_blacklisted")
+    reason_category = models.CharField(max_length=20,choices=REASON_CATEGORY_CHOICES)
+    reason_explanation = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.admin} {self.action} {self.victim}"

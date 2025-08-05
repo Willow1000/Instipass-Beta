@@ -44,9 +44,9 @@
 
             <!-- Tokens Table -->
             <div class="card">
-                <div class="card-header bg-white border-bottom">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Signup Tokens</h5>
+                <div class="card-header bg-gray">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 text-white">Signup Tokens</h5>
                         <div class="d-flex gap-2">
                              {# Add other relevant buttons like export if needed #}
                              <button class="btn btn-outline-primary btn-sm" onclick="exportSignupTokens()">
@@ -58,6 +58,30 @@
                                     <i class="bi bi-trash me-1"></i>Clear
                                 </button>
                             </a>
+                        </div>
+                    </div>
+                    <!-- Search and Filter Controls -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="searchTokens" placeholder="Search by email or token...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="dateFilter">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="text-muted small mt-2">
+                                Showing <span id="visibleCount">{{ tokens|length }}</span> of <span id="totalCount">{{ tokens|length }}</span> entries
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -83,7 +107,10 @@
                             </thead>
                             <tbody id="signupTokensTableBody">
                                 {% for token in tokens %}
-                                <tr class="signup-token-row">
+                                <tr class="signup-token-row" 
+                                    data-email="{{ token.email|lower }}" 
+                                    data-token="{{ token.token|lower }}"
+                                    data-timestamp="{{ token.created_at.isoformat }}">
                                     
                                     <td class="text-center px-3 py-2">
                                         <small class="text-muted">#{{ token.id }}</small>
@@ -123,7 +150,7 @@
             <!-- Pagination Info -->
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <div class="text-muted small">
-                    Showing <span id="showingCount">{{ signup_tokens|length }}</span> of {{ signup_tokens|length }} entries
+                    <span id="noResultsMessage" style="display: none;">No tokens match your search criteria.</span>
                 </div>
                 <div id="paginationControls" class="d-flex gap-2">
                     <!-- Pagination controls would go here -->
@@ -164,6 +191,80 @@
 
     {# Add JavaScript for copy functionality and potentially other actions #}
     <script>
+        // Initialize search and filter functionality when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchTokens');
+            const dateFilter = document.getElementById('dateFilter');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', filterTokens);
+            }
+            if (dateFilter) {
+                dateFilter.addEventListener('change', filterTokens);
+            }
+        });
+
+        function filterTokens() {
+            const searchTerm = document.getElementById('searchTokens').value.toLowerCase();
+            const dateFilter = document.getElementById('dateFilter').value;
+            const rows = document.querySelectorAll('.signup-token-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const email = row.getAttribute('data-email');
+                const token = row.getAttribute('data-token');
+                const timestamp = new Date(row.getAttribute('data-timestamp'));
+                
+                let matchesSearch = true;
+                let matchesDate = true;
+
+                // Search filter
+                if (searchTerm) {
+                    matchesSearch = email.includes(searchTerm) || token.includes(searchTerm);
+                }
+
+                // Date filter
+                if (dateFilter) {
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+
+                    switch (dateFilter) {
+                        case 'today':
+                            matchesDate = timestamp >= today;
+                            break;
+                        case 'week':
+                            matchesDate = timestamp >= weekAgo;
+                            break;
+                        case 'month':
+                            matchesDate = timestamp >= monthAgo;
+                            break;
+                    }
+                }
+
+                const shouldShow = matchesSearch && matchesDate;
+                
+                if (shouldShow) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update visible count
+            document.getElementById('visibleCount').textContent = visibleCount;
+            
+            // Show/hide no results message
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            if (visibleCount === 0 && (searchTerm.length > 0 || dateFilter)) {
+                noResultsMessage.style.display = 'block';
+            } else {
+                noResultsMessage.style.display = 'none';
+            }
+        }
+
         function copyToken(token) {
             navigator.clipboard.writeText(token).then(function() {
                 // Optional: Provide user feedback, e.g., change button icon or show a tooltip

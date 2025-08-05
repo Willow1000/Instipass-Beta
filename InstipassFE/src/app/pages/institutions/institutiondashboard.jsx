@@ -36,7 +36,7 @@ import {
   Info,
   Banknote
 } from 'lucide-react';
-
+import AcessTokenProtectedPage from '../../components/AccessTokenProtectedPage'
 // API endpoints
 const STUDENTS_API_URL = 'http://127.0.0.1:8000/institution/api/students';
 const INSTITUTION_API_URL = 'http://127.0.0.1:8000/institution/api/institution';
@@ -150,7 +150,7 @@ const useInstitutionData = (token) => {
     token ? [INSTITUTION_API_URL, token] : null, 
     fetcher, 
     {
-      refreshInterval: 300000,
+      refreshInterval: 300000, // 5 minutes
       revalidateOnFocus: false,
     }
   );
@@ -163,7 +163,7 @@ const useStudentsData = (token) => {
     token ? [STUDENTS_API_URL, token] : null, 
     fetcher, 
     {
-      refreshInterval: 30000,
+      refreshInterval: 300000, // 5 minutes
       revalidateOnFocus: true,
     }
   );
@@ -176,7 +176,7 @@ const useTemplateData = (token) => {
     token ? [TEMPLATE_API_URL, token] : null, 
     fetcher, 
     {
-      refreshInterval: 300000,
+      refreshInterval: 300000, // 5 minutes
       revalidateOnFocus: false,
     }
   );
@@ -189,7 +189,7 @@ const usePaymentsData = (token) => {
     token ? [PAYMENTS_API_URL, token] : null, 
     fetcher, 
     {
-      refreshInterval: 60000,
+      refreshInterval: 43200000, // 12 hours
       revalidateOnFocus: true,
     }
   );
@@ -202,7 +202,7 @@ const useNotificationsData = (token) => {
     token ? [NOTIFICATIONS_API_URL, token] : null, 
     fetcher, 
     {
-      refreshInterval: 30000,
+      refreshInterval: 300000, // 5 minutes
       revalidateOnFocus: true,
     }
   );
@@ -319,13 +319,7 @@ const DashboardPage = ({ students, loading, error, darkMode, refreshData }) => {
             {loading && (
               <div className="ml-3 animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-teal-500"></div>
             )}
-            <button 
-              onClick={refreshData} 
-              className="ml-2 p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-              title="Refresh data"
-            >
-              <RefreshCw size={16} />
-            </button>
+            
           </div>
         </div>
 
@@ -335,23 +329,22 @@ const DashboardPage = ({ students, loading, error, darkMode, refreshData }) => {
             type="text" 
             placeholder="Search by Name..." 
             onChange={(e) => debouncedSetSearchName(e.target.value)} 
-            className="p-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+            className="p-2 rounded-lg border text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
           />
           <input 
             type="text" 
             placeholder="Search by Registration Number..." 
             onChange={(e) => debouncedSetSearchRegNo(e.target.value)} 
-            className="p-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+            className="p-2 rounded-lg border text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
           />
           <select 
             value={filterStatus} 
             onChange={(e) => setFilterStatus(e.target.value)} 
-            className="p-2 rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+            className="p-2 rounded-lg border text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
             <option value="processing">Processing</option>
-            <option value="ready">Ready</option>
             <option value="id_ready">Ready</option>
           </select>
         </div>
@@ -779,29 +772,21 @@ const InstitutionDashboard = () => {
   }, []);
 
   // Data fetching hooks
-  const { institutionData, institutionError, institutionLoading } = useInstitutionData(isClient ? token : null);
-  const { students, error: studentsError, isLoading: studentsLoading, mutate: refreshStudents } = useStudentsData(isClient ? token : null);
-  const { templateData, templateError, templateLoading } = useTemplateData(isClient ? token : null);
-  const { paymentsData, paymentsError, paymentsLoading } = usePaymentsData(isClient ? token : null);
-  const { notificationsData, notificationsError, notificationsLoading } = useNotificationsData(isClient ? token : null);
+  const { institutionData, institutionError, institutionLoading } = useInstitutionData(token);
+  const { students, error: studentsError, isLoading: studentsLoading, mutate: refreshStudents } = useStudentsData(token);
+  const { templateData, templateError, templateLoading } = useTemplateData(token);
+  const { paymentsData, paymentsError, paymentsLoading } = usePaymentsData(token);
+  const { notificationsData, notificationsError, notificationsLoading } = useNotificationsData(token);
 
-  // Logout function
-  const handleLogout = useCallback(() => {
-    if (!isClient) return;
-    
-    try {
-      localStorage.removeItem('access_token');
-      deleteCookie('refresh_token');
-      localStorage.removeItem('instipass-theme');
-      window.location.href = '/institution/login';
-    } catch (error) {
-      console.error('Error during logout:', error);
-      window.location.href = '/institution/login';
-    }
-  }, [isClient]);
-
+  // Event handlers
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    window.location.href = '/institution/login';
+  };
+
   const toggleDarkMode = () => {
     if (!isClient) return;
     
@@ -879,15 +864,17 @@ const InstitutionDashboard = () => {
 
   // Get institution logo or fallback to default
   const getProfileImage = () => {
+    // console.log(institutionData.name)
     if (institutionData && institutionData.logo) {
       return institutionData.logo;
     }
     return "https://i.pravatar.cc/40?u=admin";
+    
   };
 
   // Get institution name or fallback to default
   const getProfileName = () => {
-    if (institutionData && institutionData.name) {
+    if (institutionData) {
       return institutionData.name;
     }
     return "Admin User";
@@ -905,132 +892,33 @@ const InstitutionDashboard = () => {
   }
 
   return (
-    <div className={`flex h-screen overflow-hidden ${darkMode ? 'bg-gray-900 text-gray-200 dark' : 'bg-gray-100 text-gray-800'}`}>
-      {/* Desktop Sidebar */}
-      <AnimatePresence>
-      {sidebarOpen && (
-        <motion.aside 
-          key="desktop-sidebar-expanded"
-          initial={{ width: 0, opacity: 0, x: -50 }}
-          animate={{ width: '16rem', opacity: 1, x: 0 }}
-          exit={{ width: 0, opacity: 0, x: -50 }}
-          transition={{ duration: 0.3 }}
-          className={`hidden lg:flex flex-col h-full ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl z-20`}
-        >
-          <div className={`flex items-center justify-between p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <div className="flex items-center">
-              <LayoutDashboard className="text-teal-500 w-7 h-7 mr-2" />
-              <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Instipass</span>
-            </div>
-            <button onClick={toggleSidebar} className={`p-1 rounded-md ${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200'}`} title="Collapse sidebar">
-              <ChevronLeft size={20} />
-            </button>
-          </div>
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            <NavItem icon={<LayoutDashboard size={20}/>} label="Dashboard" pageName="dashboard" />
-            <NavItem icon={<Settings size={20}/>} label="Template Settings" pageName="template-settings" />
-            <NavItem icon={<CreditCard size={20}/>} label="Payments" pageName="payments" />
-            <NavItem icon={<Bell size={20}/>} label="Notifications" pageName="notifications" />
-          </nav>
-          <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <button 
-              onClick={toggleDarkMode} 
-              className={`w-full flex items-center p-3 rounded-lg transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}`}
-            >
-              {darkMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
-              <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-            </button>
-            <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" onClick={handleLogout} />
-          </div>
-        </motion.aside>
-      )}
-      </AnimatePresence>
-
-      {!sidebarOpen && (
-        <motion.aside 
-          key="desktop-sidebar-collapsed"
-          initial={{ width: '16rem' }}
-          animate={{ width: '5rem' }}
-          transition={{ duration: 0.3 }}
-          className={`hidden lg:flex flex-col h-full ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl z-20 items-center`}
-        >
-          <div className={`flex items-center justify-center p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} w-full`}>
-            <button onClick={toggleSidebar} className={`p-1 rounded-md ${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200'}`} title="Expand sidebar">
-              <ChevronRight size={20} />
-            </button>
-          </div>
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto w-full">
-            <NavItem icon={<LayoutDashboard size={20}/>} label="Dashboard" pageName="dashboard" />
-            <NavItem icon={<Settings size={20}/>} label="Template Settings" pageName="template-settings" />
-            <NavItem icon={<CreditCard size={20}/>} label="Payments" pageName="payments" />
-            <NavItem icon={<Bell size={20}/>} label="Notifications" pageName="notifications" />
-          </nav>
-          <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} w-full flex flex-col space-y-2`}>
-            <button 
-              onClick={toggleDarkMode} 
-              className={`w-full flex justify-center p-3 rounded-lg transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}`}
-              title={darkMode ? 'Light Mode' : 'Dark Mode'}
-            >
-              {darkMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
-            </button>
-            <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" onClick={handleLogout} />
-          </div>
-        </motion.aside>
-      )}
-
-      {/* Mobile Sidebar */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            key="mobile-sidebar-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
-            onClick={toggleMobileMenu}
-          />
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {mobileMenuOpen && (
+    <AcessTokenProtectedPage>
+      <div className={`flex h-screen overflow-hidden ${darkMode ? 'bg-gray-900 text-gray-200 dark' : 'bg-gray-100 text-gray-800'}`}>
+        {/* Desktop Sidebar */}
+        <AnimatePresence>
+        {sidebarOpen && (
           <motion.aside 
-            key="mobile-sidebar"
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className={`fixed top-0 left-0 h-full w-64 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl z-40 flex flex-col lg:hidden`}
+            key="desktop-sidebar-expanded"
+            initial={{ width: 0, opacity: 0, x: -50 }}
+            animate={{ width: '16rem', opacity: 1, x: 0 }}
+            exit={{ width: 0, opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className={`hidden lg:flex flex-col h-full ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl z-20`}
           >
             <div className={`flex items-center justify-between p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <div className="flex items-center">
                 <LayoutDashboard className="text-teal-500 w-7 h-7 mr-2" />
                 <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Instipass</span>
               </div>
-              <button onClick={toggleMobileMenu} className={`p-1 rounded-md ${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200'}`} title="Close menu">
-                <X size={24} />
+              <button onClick={toggleSidebar} className={`p-1 rounded-md ${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200'}`} title="Collapse sidebar">
+                <ChevronLeft size={20} />
               </button>
             </div>
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-              <NavItem icon={<LayoutDashboard size={20}/>} label="Dashboard" pageName="dashboard" isMobile={true} />
-              <NavItem icon={<Settings size={20}/>} label="Template Settings" pageName="template-settings" isMobile={true} />
-              <NavItem icon={<CreditCard size={20}/>} label="Payments" pageName="payments" isMobile={true} />
-              <NavItem icon={<Bell size={20}/>} label="Notifications" pageName="notifications" isMobile={true} />
+              <NavItem icon={<LayoutDashboard size={20}/>} label="Dashboard" pageName="dashboard" />
+              <NavItem icon={<Settings size={20}/>} label="Template Settings" pageName="template-settings" />
+              <NavItem icon={<CreditCard size={20}/>} label="Payments" pageName="payments" />
+              <NavItem icon={<Bell size={20}/>} label="Notifications" pageName="notifications" />
             </nav>
             <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <button 
@@ -1048,50 +936,151 @@ const InstitutionDashboard = () => {
                 )}
                 <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
-              <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" isMobile={true} onClick={handleLogout} />
+              <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" onClick={handleLogout} />
             </div>
           </motion.aside>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <header className={`sticky top-0 z-10 ${darkMode ? 'bg-gray-800/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md'} shadow-sm p-4 flex justify-between items-center`}>
-          <div className="flex items-center">
-            <button onClick={toggleMobileMenu} className="lg:hidden p-2 mr-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700" title="Open menu">
-              <Menu size={24} />
-            </button>
-            <h2 className={`text-lg md:text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} truncate`}>
-              {activePage === 'template-settings' ? 'Template Settings' : 
-               activePage.charAt(0).toUpperCase() + activePage.slice(1)}
-            </h2>
-          </div>
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="flex items-center">
-              {institutionLoading ? (
-                <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
-              ) : (
-                <img 
-                  src={getProfileImage()} 
-                  alt={getProfileName()} 
-                  className="w-8 h-8 rounded-full object-cover"
-                  onError={(e) => {
-                    e.target.src = "https://i.pravatar.cc/40?u=admin";
-                  }}
-                />
-              )}
-              <span className="ml-2 hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {institutionLoading ? "Loading..." : getProfileName()}
-              </span>
+        {!sidebarOpen && (
+          <motion.aside 
+            key="desktop-sidebar-collapsed"
+            initial={{ width: '16rem' }}
+            animate={{ width: '5rem' }}
+            transition={{ duration: 0.3 }}
+            className={`hidden lg:flex flex-col h-full ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl z-20 items-center`}
+          >
+            <div className={`flex items-center justify-center p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} w-full`}>
+              <button onClick={toggleSidebar} className={`p-1 rounded-md ${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200'}`} title="Expand sidebar">
+                <ChevronRight size={20} />
+              </button>
             </div>
-          </div>
-        </header>
-        
-        <main className="p-4 md:p-6 lg:p-8 flex-1 overflow-y-auto">
-          {renderMainContent()}
-        </main>
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto w-full">
+              <NavItem icon={<LayoutDashboard size={20}/>} label="Dashboard" pageName="dashboard" />
+              <NavItem icon={<Settings size={20}/>} label="Template Settings" pageName="template-settings" />
+              <NavItem icon={<CreditCard size={20}/>} label="Payments" pageName="payments" />
+              <NavItem icon={<Bell size={20}/>} label="Notifications" pageName="notifications" />
+            </nav>
+            <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} w-full flex flex-col space-y-2`}>
+              <button 
+                onClick={toggleDarkMode} 
+                className={`w-full flex justify-center p-3 rounded-lg transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}`}
+                title={darkMode ? 'Light Mode' : 'Dark Mode'}
+              >
+                {darkMode ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+              <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" onClick={handleLogout} />
+            </div>
+          </motion.aside>
+        )}
+
+        {/* Mobile Sidebar */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div 
+              key="mobile-sidebar-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+              onClick={toggleMobileMenu}
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.aside 
+              key="mobile-sidebar"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className={`fixed top-0 left-0 h-full w-64 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl z-40 flex flex-col lg:hidden`}
+            >
+              <div className={`flex items-center justify-between p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className="flex items-center">
+                  <LayoutDashboard className="text-teal-500 w-7 h-7 mr-2" />
+                  <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Instipass</span>
+                </div>
+                <button onClick={toggleMobileMenu} className={`p-1 rounded-md ${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200'}`} title="Close menu">
+                  <X size={24} />
+                </button>
+              </div>
+              <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+                <NavItem icon={<LayoutDashboard size={20}/>} label="Dashboard" pageName="dashboard" isMobile={true} />
+                <NavItem icon={<Settings size={20}/>} label="Template Settings" pageName="template-settings" isMobile={true} />
+                <NavItem icon={<CreditCard size={20}/>} label="Payments" pageName="payments" isMobile={true} />
+                <NavItem icon={<Bell size={20}/>} label="Notifications" pageName="notifications" isMobile={true} />
+              </nav>
+              <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <button 
+                  onClick={toggleDarkMode} 
+                  className={`w-full flex items-center p-3 rounded-lg transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}`}
+                >
+                  {darkMode ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  )}
+                  <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
+                <NavItem icon={<LogOut size={20}/>} label="Logout" pageName="logout" isMobile={true} onClick={handleLogout} />
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          <header className={`sticky top-0 z-10 ${darkMode ? 'bg-gray-800/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md'} shadow-sm p-4 flex justify-between items-center`}>
+            <div className="flex items-center">
+              <button onClick={toggleMobileMenu} className="lg:hidden p-2 mr-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700" title="Open menu">
+                <Menu size={24} />
+              </button>
+              <h2 className={`text-lg md:text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} truncate`}>
+                {activePage === 'template-settings' ? 'Template Settings' : 
+                 activePage.charAt(0).toUpperCase() + activePage.slice(1)}
+              </h2>
+            </div>
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="flex items-center">
+                {institutionLoading ? (
+                  <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
+                ) : (
+                  <img 
+                    src={getProfileImage()} 
+                    alt={getProfileName()} 
+                    className="w-8 h-8 rounded-full object-cover"
+                    onError={(e) => {
+                      e.target.src = "https://i.pravatar.cc/40?u=admin";
+                    }}
+                  />
+                )}
+                <span className="ml-2 hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {institutionLoading ? "Loading..." : getProfileName()}
+                </span>
+              </div>
+            </div>
+          </header>
+          
+          <main className="p-4 md:p-6 lg:p-8 flex-1 overflow-y-auto">
+            {renderMainContent()}
+          </main>
+        </div>
       </div>
-    </div>
+    </AcessTokenProtectedPage>
   );
 };
 
@@ -1099,64 +1088,64 @@ export default InstitutionDashboard;
 
 // --- Token Refresh Logic ---
 
-function getCookie(name) {
-  const nameEQ = name + "=";
-  const ca = document.cookie.split(";");
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) === " ") c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-  }
-  return null;
-}
+// function getCookie(name) {
+//   const nameEQ = name + "=";
+//   const ca = document.cookie.split(";");
+//   for (let i = 0; i < ca.length; i++) {
+//     let c = ca[i];
+//     while (c.charAt(0) === " ") c = c.substring(1, c.length);
+//     if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+//   }
+//   return null;
+// }
 
-function setCookie(name, value, days) {
-  let expires = "";
-  if (days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    expires = "; expires=" + date.toUTCString();
-  }
-  document.cookie = name + "=" + (value || "") + expires + "; path=/";
-}
+// function setCookie(name, value, days) {
+//   let expires = "";
+//   if (days) {
+//     const date = new Date();
+//     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+//     expires = "; expires=" + date.toUTCString();
+//   }
+//   document.cookie = name + "=" + (value || "") + expires + "; path=/";
+// }
 
-function deleteCookie(name) {
-  document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-}
+// function deleteCookie(name) {
+//   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+// }
 
-async function handleTokenRefresh() {
-  const refreshToken = getCookie("refresh_token");
+// async function handleTokenRefresh() {
+//   const refreshToken = getCookie("refresh_token");
 
-  if (!refreshToken) {
-    window.location.href = "/institution/login";
-    return null;
-  }
+//   if (!refreshToken) {
+//     window.location.href = "/institution/login";
+//     return null;
+//   }
 
-  try {
-    const token = localStorage.getItem('access_token') 
-    const response = await fetch("http://127.0.0.1:8000/institution/api/token/refresh/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ refresh: refreshToken }),
-    });
+//   try {
+//     const token = localStorage.getItem('access_token') 
+//     const response = await fetch("http://127.0.0.1:8000/institution/api/token/refresh/", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         'Authorization': `Bearer ${token}`,
+//       },
+//       body: JSON.stringify({ refresh: refreshToken }),
+//     });
 
-    if (!response.ok) {
-      throw new Error(`Token refresh failed with status ${response.status}`);
-    }
+//     if (!response.ok) {
+//       throw new Error(`Token refresh failed with status ${response.status}`);
+//     }
 
-    const data = await response.json();
-    localStorage.setItem("access_token", data.access);
-    setCookie("refresh_token", data.refresh, 7);
+//     const data = await response.json();
+//     localStorage.setItem("access_token", data.access);
+//     setCookie("refresh_token", data.refresh, 7);
 
-    return data.access;
+//     return data.access;
 
-  } catch (error) {
-    console.error("Error during token refresh:", error);
-    window.location.href = "/institution/login";
-    return null;
-  }
-}
+//   } catch (error) {
+//     console.error("Error during token refresh:", error);
+//     window.location.href = "/institution/login";
+//     return null;
+//   }
+// }
 

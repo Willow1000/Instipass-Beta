@@ -1,10 +1,13 @@
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save,post_delete
+from logs.middleware import get_current_request
 from django.dispatch import receiver
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from .models import User
 from .models import InstitutionSignupToken
+from logs.models import AdminActionsLog
 
 @receiver(post_save, sender=User, dispatch_uid="send_welcome_email")
 def welcome_mail(sender, instance, created, **kwargs):
@@ -65,4 +68,16 @@ def send_signup_link(sender, instance, created, **kwargs):
         recipient_list=[instance.email],
         fail_silently=False,
         html_message=html_message,
+    )
+
+@receiver(post_delete,sender=User,dispatch_uid="log_user_delete")
+def log_user_delete(sender,instance,**kwargs):
+    request = get_current_request()
+    user = request.user if request else None
+    AdminActionsLog.objects.create(
+        action = "DELETE",
+        admin = user,
+        victim_type= "USER",
+        victim = f"{instance.id} {instance.email} {instance.role}"
+
     )

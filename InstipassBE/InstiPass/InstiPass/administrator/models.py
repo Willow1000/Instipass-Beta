@@ -26,11 +26,3 @@ class DemoBookingTracker(models.Model):
     user_agent = models.TextField(blank=True, null=True)
     submitted_at = models.DateTimeField(auto_now_add=True)            
 
-class BlackList(models.Model):
-    ip_address = ip_address = models.GenericIPAddressField(null=True, blank=True)
-    fingerprint = models.CharField(max_length=64, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True, help_text="When the booking was created")
-    updated_at = models.DateTimeField(auto_now=True, help_text="When the booking was last updated")
-
-
-
