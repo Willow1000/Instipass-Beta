@@ -427,7 +427,7 @@ class RegistrationTrackerView(ListView,LoginRequiredMixin,UserPassesTestMixin):
     template_name = 'administrator/admin_institution_registration_tracker.html'
     model = RegistrationTracker
     context_object_name = 'trackers'
-    login_url = reverse_lazy('adminLOgin')    
+    login_url = reverse_lazy('adminLogin')    
     def test_func(self):
        return self.request.user.is_superuser 
 
@@ -435,7 +435,7 @@ class SubmissionTrackerView(ListView,LoginRequiredMixin,UserPassesTestMixin):
     template_name = 'administrator/admin_student_registration_tracker.html'
     model = SubmissionTracker
     context_object_name = 'trackers'
-    login_url = reverse_lazy('adminLOgin')    
+    login_url = reverse_lazy('adminLogin')    
     def test_func(self):
        return self.request.user.is_superuser        
 
@@ -548,3 +548,5 @@ class DeleteUserView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
     def get_success_url(self):
         next_url = self.request.GET.get('next')
         return next_url 
+
+      

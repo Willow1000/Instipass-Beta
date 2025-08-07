@@ -241,12 +241,7 @@
                                 User Management
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'apiAccess' %}" data-page="apiAccess">
-                                <i class="bi bi-file-earmark-code nav-icon"></i>
-                                API Access Logs
-                            </a>
-                        </li>
+                        
                         <li>
                             <a class="dropdown-item" href="{% url 'institution_token' %}" data-page="institution_token">
                                 <i class="bi bi-person-badge nav-icon"></i>
@@ -269,6 +264,12 @@
                         Tracking & Logs
                     </a>
                     <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'apiAccess' %}" data-page="apiAccess">
+                                <i class="bi bi-file-earmark-code nav-icon"></i>
+                                API Access Logs
+                            </a>
+                        </li>
                         <li>
                             <a class="dropdown-item" href="{% url 'admin_signup_tracker' %}" data-page="admin_signup_tracker">
                                 <i class="bi bi-clipboard-data nav-icon"></i>

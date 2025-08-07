@@ -2,7 +2,7 @@ from django.contrib import admin
 from InstiPass import settings
 from django.conf.urls.static import static
 from django.urls import path,include
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+# from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 

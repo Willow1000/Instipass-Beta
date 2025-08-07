@@ -44,8 +44,7 @@ urlpatterns = [
     path("clear/demobookingtracker",clear_demobookingtracker),
     path('blacklist/<str:institution_email>', blacklist_manager, name='blacklist_user'),
     path("usermanagement",UserView.as_view(),name="user_management" ),
-    path("delete/user/<int:pk>",DeleteUserView.as_view(),name='delete_user')
+    path("delete/user/<int:pk>",DeleteUserView.as_view(),name='delete_user'),
 
-    
 ]
 

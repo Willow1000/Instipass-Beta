@@ -4,8 +4,8 @@ from django.utils.html import strip_tags
 from django.db.models.signals import post_save,post_delete
 from logs.middleware import get_current_request
 from django.dispatch import receiver
-# from django.contrib.auth.models import User
-from .models import User
+from django.contrib.auth.models import User
+from .models import User as user
 from .models import InstitutionSignupToken
 from logs.models import AdminActionsLog
 
@@ -70,7 +70,7 @@ def send_signup_link(sender, instance, created, **kwargs):
         html_message=html_message,
     )
 
-@receiver(post_delete,sender=User,dispatch_uid="log_user_delete")
+@receiver(post_delete,sender=user,dispatch_uid="log_user_delete")
 def log_user_delete(sender,instance,**kwargs):
     request = get_current_request()
     user = request.user if request else None

@@ -122,21 +122,7 @@ const fetcher = async ([url, token]) => {
 
   if (!response.ok) {
     if (response.status === 401) {
-      const newAccessToken = await handleTokenRefresh();
-      if (newAccessToken) {
-        const retryResponse = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${newAccessToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!retryResponse.ok) {
-          throw new Error(`API request failed after refresh with status ${retryResponse.status}`);
-        }
-        return retryResponse.json();
-      } else {
-        throw new Error("Token refresh failed or no refresh token.");
-      }
+      return window.location.href='/institution/login'
     }
     throw new Error(`API request failed with status ${response.status}`);
   }
@@ -693,16 +679,7 @@ const NotificationsPage = ({ notificationsData, loading, error, darkMode }) => {
     );
   }
 
-  const notifications = notificationsData?.notifications || [];
-
-  const getNotificationIcon = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'payment': return <CreditCard size={20} className="text-green-600 dark:text-green-400" />;
-      case 'template': return <FileText size={20} className="text-blue-600 dark:text-blue-400" />;
-      case 'status': return <Info size={20} className="text-yellow-600 dark:text-yellow-400" />;
-      default: return <Bell size={20} className="text-gray-600 dark:text-gray-400" />;
-    }
-  };
+  const notifications = notificationsData || [];
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -713,23 +690,16 @@ const NotificationsPage = ({ notificationsData, loading, error, darkMode }) => {
           {notifications.length > 0 ? notifications.map((notification, index) => (
             <div key={index} className={`p-4 border rounded-lg ${darkMode ? 'border-gray-600 bg-gray-700/30' : 'border-gray-200 bg-gray-50'}`}>
               <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 mt-1">
-                  {getNotificationIcon(notification.type)}
-                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       {notification.message}
                     </p>
                     <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {new Date(notification.timestamp).toLocaleString()}
+                      {new Date(notification.created_at).toLocaleString()}
                     </p>
                   </div>
-                  {notification.type && (
-                    <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Type: {notification.type}
-                    </p>
-                  )}
+                  
                 </div>
               </div>
             </div>
@@ -1085,67 +1055,4 @@ const InstitutionDashboard = () => {
 };
 
 export default InstitutionDashboard;
-
-// --- Token Refresh Logic ---
-
-// function getCookie(name) {
-//   const nameEQ = name + "=";
-//   const ca = document.cookie.split(";");
-//   for (let i = 0; i < ca.length; i++) {
-//     let c = ca[i];
-//     while (c.charAt(0) === " ") c = c.substring(1, c.length);
-//     if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-//   }
-//   return null;
-// }
-
-// function setCookie(name, value, days) {
-//   let expires = "";
-//   if (days) {
-//     const date = new Date();
-//     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-//     expires = "; expires=" + date.toUTCString();
-//   }
-//   document.cookie = name + "=" + (value || "") + expires + "; path=/";
-// }
-
-// function deleteCookie(name) {
-//   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-// }
-
-// async function handleTokenRefresh() {
-//   const refreshToken = getCookie("refresh_token");
-
-//   if (!refreshToken) {
-//     window.location.href = "/institution/login";
-//     return null;
-//   }
-
-//   try {
-//     const token = localStorage.getItem('access_token') 
-//     const response = await fetch("http://127.0.0.1:8000/institution/api/token/refresh/", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         'Authorization': `Bearer ${token}`,
-//       },
-//       body: JSON.stringify({ refresh: refreshToken }),
-//     });
-
-//     if (!response.ok) {
-//       throw new Error(`Token refresh failed with status ${response.status}`);
-//     }
-
-//     const data = await response.json();
-//     localStorage.setItem("access_token", data.access);
-//     setCookie("refresh_token", data.refresh, 7);
-
-//     return data.access;
-
-//   } catch (error) {
-//     console.error("Error during token refresh:", error);
-//     window.location.href = "/institution/login";
-//     return null;
-//   }
-// }
 
