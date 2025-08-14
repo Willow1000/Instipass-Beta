@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pages/home.jsx", "src/app/pages/about.jsx", "src/app/pages/instipass/privacyPolicy.jsx", "src/app/pages/tutorials/tutorialsinstitutions.jsx", "src/app/pages/tutorials/tutorialsstudents.jsx", "src/app/pages/institutions/institutiondashboard.jsx", "src/app/pages/institutions/institutionlogin.jsx", "src/app/pages/students/studentsregister.jsx", "src/app/institution/(auth)/settings/update/page.jsx", "src/app/institution/(auth)/settings/template/page.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pages/home.jsx", "src/app/pages/about.jsx", "src/app/pages/instipass/privacyPolicy.jsx", "src/app/pages/tutorials/tutorialsinstitutions.jsx", "src/app/pages/tutorials/tutorialsstudents.jsx", "src/app/pages/institutions/institutiondashboard.jsx", "src/app/pages/institutions/institutionlogin.jsx", "src/app/pages/students/studentsregister.jsx", "src/app/institution/(auth)/settings/update/page.jsx", "src/app/institution/(auth)/settings/template/page.jsx", "src/app/institution/(auth)/settings/page.jsx"],
   "exclude": ["node_modules"]
 }

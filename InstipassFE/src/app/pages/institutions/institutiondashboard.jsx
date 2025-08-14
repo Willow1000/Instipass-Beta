@@ -34,13 +34,25 @@ import {
   Image as ImageIcon,
   MessageSquare,
   Info,
-  Banknote
+  Banknote,
+  Building,
+  MapPin,
+  Mail,
+  Phone,
+  Globe,
+  User,
+  QrCode,
+  BarChart3,
+  GraduationCap,
+  Palette
 } from 'lucide-react';
 import AcessTokenProtectedPage from '../../components/AccessTokenProtectedPage'
+
 // API endpoints
 const STUDENTS_API_URL = 'http://127.0.0.1:8000/institution/api/students';
 const INSTITUTION_API_URL = 'http://127.0.0.1:8000/institution/api/institution';
 const TEMPLATE_API_URL = 'http://127.0.0.1:8000/institution/api/template';
+const SETTINGS_API_URL = 'http://127.0.0.1:8000/institution/api/settings/';
 const PAYMENTS_API_URL = 'http://127.0.0.1:8000/institution/api/payments';
 const NOTIFICATIONS_API_URL = 'http://127.0.0.1:8000/institution/api/notifications';
 
@@ -170,6 +182,19 @@ const useTemplateData = (token) => {
   return { templateData, templateError, templateLoading };
 };
 
+const useSettingsData = (token) => {
+  const { data: settingsData, error: settingsError, isLoading: settingsLoading } = useSWR(
+    token ? [SETTINGS_API_URL, token] : null, 
+    fetcher, 
+    {
+      refreshInterval: 300000, // 5 minutes
+      revalidateOnFocus: false,
+    }
+  );
+
+  return { settingsData, settingsError, settingsLoading };
+};
+
 const usePaymentsData = (token) => {
   const { data: paymentsData, error: paymentsError, isLoading: paymentsLoading } = useSWR(
     token ? [PAYMENTS_API_URL, token] : null, 
@@ -216,6 +241,141 @@ const StatCard = ({ title, value, icon, darkMode, colorClass = '' }) => (
     </div>
   </motion.div>
 );
+
+// Institution Details Popup Component
+const InstitutionDetailsPopup = ({ institutionData, isOpen, onClose, darkMode }) => {
+  const institution = Array.isArray(institutionData) ? institutionData[0] : institutionData;
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className={`p-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+            <div className="flex items-center justify-between">
+              <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} flex items-center`}>
+                <Building className="mr-2 text-teal-600 dark:text-teal-400" size={24} />
+                Institution Details
+              </h3>
+              <button 
+                onClick={onClose}
+                className={`p-1 rounded-md ${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200'}`}
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            {institution ? (
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <Building className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                  <div>
+                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Institution Name</p>
+                    <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>{institution.name || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <MapPin className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                  <div>
+                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Location</p>
+                    <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {institution.county || 'N/A'}, {institution.region || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <Mail className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                  <div>
+                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Email</p>
+                    <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>{institution.email || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <Phone className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                  <div>
+                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Phone</p>
+                    <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>{institution.tel || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <MapPin className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                  <div>
+                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Address</p>
+                    <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>{institution.address || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                {institution.web_url && (
+                  <div className="flex items-start space-x-3">
+                    <Globe className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                    <div>
+                      <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Website</p>
+                      <a 
+                        href={institution.web_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-base text-teal-600 dark:text-teal-400 hover:underline"
+                      >
+                        {institution.web_url}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex items-start space-x-3">
+                  <User className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                  <div>
+                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Admin Contact</p>
+                    <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>{institution.admin_email || 'N/A'}</p>
+                    {institution.admin_tell && (
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{institution.admin_tell}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <Calendar className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                  <div>
+                    <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Registered</p>
+                    <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {institution.created_at ? new Date(institution.created_at).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Building className={`mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Institution details not available
+                </p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
 // Dashboard Page Component
 const DashboardPage = ({ students, loading, error, darkMode, refreshData }) => {
@@ -420,26 +580,8 @@ const DashboardPage = ({ students, loading, error, darkMode, refreshData }) => {
   );
 };
 
-// Template Settings Page Component
-const TemplateSettingsPage = ({ templateData, loading, error, darkMode }) => {
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'approved': return 'text-green-600 dark:text-green-400';
-      case 'under review': return 'text-yellow-600 dark:text-yellow-400';
-      case 'submitted': return 'text-blue-600 dark:text-blue-400';
-      default: return 'text-gray-600 dark:text-gray-400';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'approved': return <CheckCircle size={20} className="text-green-600 dark:text-green-400" />;
-      case 'under review': return <Clock size={20} className="text-yellow-600 dark:text-yellow-400" />;
-      case 'submitted': return <Upload size={20} className="text-blue-600 dark:text-blue-400" />;
-      default: return <AlertTriangle size={20} className="text-gray-600 dark:text-gray-400" />;
-    }
-  };
-
+// Enhanced Template Settings Page Component with Institution Settings
+const TemplateSettingsPage = ({ settingsData, loading, error, darkMode }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -453,62 +595,124 @@ const TemplateSettingsPage = ({ templateData, loading, error, darkMode }) => {
       <div className="p-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300">
         <div className="flex items-center">
           <AlertTriangle className="mr-2" size={20} />
-          <p>Error loading template data: {error.message}</p>
+          <p>Error loading settings data: {error.message}</p>
         </div>
       </div>
     );
   }
 
-  const currentStatus = templateData?.status || 'Not Submitted';
-  const lastUpdated = templateData?.updated_at ? new Date(templateData.updated_at).toLocaleString() : 'Never';
-  const templatePreview = templateData?.preview_url;
+  // Get settings details - handle both array and object responses
+  const settings = Array.isArray(settingsData) ? settingsData[0] : settingsData;
 
   return (
     <div className="space-y-6 md:space-y-8">
-      {/* Current Template Status */}
+      {/* Institution Settings Section */}
       <div className={`p-6 rounded-2xl shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Current Template Status</h3>
+        <h3 className={`text-lg font-semibold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'} flex items-center`}>
+          <Settings className="mr-2 text-teal-600 dark:text-teal-400" size={24} />
+          Institution Settings
+        </h3>
         
-        <div className="flex items-center space-x-3 mb-4">
-          {getStatusIcon(currentStatus)}
-          <span className={`text-lg font-medium ${getStatusColor(currentStatus)}`}>
-            {currentStatus}
-          </span>
-        </div>
-        
-        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Last updated: {lastUpdated}
-        </p>
-      </div>
-
-      {/* Template Preview */}
-      <div className={`p-6 rounded-2xl shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Template Preview</h3>
-        
-        {templatePreview ? (
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-              <img 
-                src={templatePreview} 
-                alt="ID Template Preview" 
-                className="max-w-full h-auto mx-auto rounded-lg shadow-md"
-                style={{ maxHeight: '400px' }}
-              />
+        {settings ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <QrCode className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                <div>
+                  <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>QR Code</p>
+                  <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {settings.qrcode ? 'Enabled' : 'Disabled'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <BarChart3 className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                <div>
+                  <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Barcode</p>
+                  <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {settings.barcode ? 'Enabled' : 'Disabled'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <GraduationCap className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                <div>
+                  <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Minimum Admission Year</p>
+                  <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>{settings.min_admission_year || 'N/A'}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <Bell className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                <div>
+                  <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Notification Preference</p>
+                  <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {settings.notification_pref ? settings.notification_pref.charAt(0).toUpperCase() + settings.notification_pref.slice(1) : 'N/A'}
+                  </p>
+                </div>
+              </div>
             </div>
-            <p className={`text-sm text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              To change your template, please contact Instipass support.
-            </p>
+            
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <Palette className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                <div>
+                  <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Template</p>
+                  {settings.template ? (
+                    <div className="mt-2">
+                      <img 
+                        src={settings.template} 
+                        alt="Institution Template" 
+                        className="max-w-full h-auto rounded-lg shadow-md"
+                        style={{ maxHeight: '200px' }}
+                      />
+                    </div>
+                  ) : (
+                    <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>No template available</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <Calendar className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                <div>
+                  <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Last Updated</p>
+                  <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {settings.updated_at ? new Date(settings.updated_at).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <Calendar className="text-teal-600 dark:text-teal-400 mt-1" size={18} />
+                <div>
+                  <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Created</p>
+                  <p className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {settings.created_at ? new Date(settings.created_at).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-            <ImageIcon size={48} className={`mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
-              No template preview available
-            </p>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              To submit or change your template, please contact Instipass support.
-            </p>
+          <div className="text-center py-8 flex flex-col gap-7">
+            <div>
+              <Settings className={`mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
+              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Institution settings not available
+              </p>
+            </div>
+            <div className="text-center">
+            <a href="/institution/settings" className='px-8 bg-teal-600 hover:bg-teal-400 py-3 rounded-lg text-white font-semibold shadow-md transition-all duration-300
+               '><button>Register Settings</button></a>
           </div>
+          </div>
+         
+        
         )}
       </div>
     </div>
@@ -611,49 +815,49 @@ const PaymentsPage = ({ paymentsData, loading, error, darkMode }) => {
         </div>
       </div>
 
-      {/* Payment History Table */}
-      <div className={`p-6 rounded-2xl shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Payment History</h3>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
-              <tr>
-                <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Payment Type</th>
-                <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Amount</th>
-                <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
-                <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
-                <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Note</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {paymentHistory.length > 0 ? paymentHistory.map((payment, index) => (
-                <tr key={index} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
-                  <td className="p-3 text-sm font-medium">{payment.type}</td>
-                  <td className="p-3 text-sm">${payment.amount}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      payment.status?.toLowerCase() === 'paid' 
-                        ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
-                        : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
-                    }`}>
-                      {payment.status}
-                    </span>
-                  </td>
-                  <td className="p-3 text-sm">{new Date(payment.date).toLocaleDateString()}</td>
-                  <td className="p-3 text-sm">{payment.note || '-'}</td>
-                </tr>
-              )) : (
+      {/* Payment History */}
+      {paymentHistory.length > 0 && (
+        <div className={`p-6 rounded-2xl shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+          <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Payment History</h3>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-700/50">
                 <tr>
-                  <td colSpan="5" className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                    No payment history available.
-                  </td>
+                  <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                  <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Amount</th>
+                  <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Type</th>
+                  <th className="p-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paymentHistory.map((payment, index) => (
+                  <tr key={index} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                    <td className="p-3 text-sm whitespace-nowrap">
+                      {new Date(payment.date).toLocaleDateString()}
+                    </td>
+                    <td className="p-3 text-sm whitespace-nowrap font-medium">
+                      ${payment.amount}
+                    </td>
+                    <td className="p-3 text-sm whitespace-nowrap">
+                      {payment.type}
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        payment.status?.toLowerCase() === 'paid' 
+                          ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                          : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
+                      }`}>
+                        {payment.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -681,37 +885,63 @@ const NotificationsPage = ({ notificationsData, loading, error, darkMode }) => {
 
   const notifications = notificationsData || [];
 
+  const getNotificationIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'success': return <CheckCircle size={20} className="text-green-600 dark:text-green-400" />;
+      case 'warning': return <AlertTriangle size={20} className="text-yellow-600 dark:text-yellow-400" />;
+      case 'error': return <X size={20} className="text-red-600 dark:text-red-400" />;
+      case 'info': 
+      default: return <Info size={20} className="text-blue-600 dark:text-blue-400" />;
+    }
+  };
+
+  const getNotificationColor = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'success': return 'border-l-green-500 bg-green-50 dark:bg-green-900/20';
+      case 'warning': return 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20';
+      case 'error': return 'border-l-red-500 bg-red-50 dark:bg-red-900/20';
+      case 'info': 
+      default: return 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20';
+    }
+  };
+
   return (
     <div className="space-y-6 md:space-y-8">
       <div className={`p-6 rounded-2xl shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Notification Feed</h3>
+        <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Recent Notifications</h3>
         
-        <div className="space-y-4">
-          {notifications.length > 0 ? notifications.map((notification, index) => (
-            <div key={index} className={`p-4 border rounded-lg ${darkMode ? 'border-gray-600 bg-gray-700/30' : 'border-gray-200 bg-gray-50'}`}>
-              <div className="flex items-start space-x-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+        {notifications.length > 0 ? (
+          <div className="space-y-4">
+            {notifications.map((notification, index) => (
+              <div 
+                key={notification.id || index} 
+                className={`p-4 border-l-4 rounded-r-lg ${getNotificationColor(notification.type)}`}
+              >
+                <div className="flex items-start space-x-3">
+                  {getNotificationIcon(notification.type)}
+                  <div className="flex-1">
+                    <h4 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {notification.title || 'Notification'}
+                    </h4>
+                    <p className={`text-sm mt-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                       {notification.message}
                     </p>
-                    <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p className={`text-xs mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                       {new Date(notification.created_at).toLocaleString()}
                     </p>
                   </div>
-                  
                 </div>
               </div>
-            </div>
-          )) : (
-            <div className="text-center py-8">
-              <Bell size={48} className={`mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-              <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                No notifications available.
-              </p>
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Bell className={`mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={48} />
+            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              No notifications available
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -719,36 +949,40 @@ const NotificationsPage = ({ notificationsData, loading, error, darkMode }) => {
 
 // Main Dashboard Component
 const InstitutionDashboard = () => {
-  // State for client-side only features
-  const [isClient, setIsClient] = useState(false);
-  const [token, setToken] = useState(null);
+  const [activePage, setActivePage] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activePage, setActivePage] = useState('dashboard'); 
+  const [isClient, setIsClient] = useState(false);
+  const [showInstitutionPopup, setShowInstitutionPopup] = useState(false);
 
-  // Initialize client-side state
+  // Get token from localStorage
+  const [token, setToken] = useState(null);
+
   useEffect(() => {
     setIsClient(true);
     const storedToken = localStorage.getItem('access_token');
     setToken(storedToken);
     
-    const savedTheme = localStorage.getItem('instipass-theme');
-    setDarkMode(savedTheme === 'dark');
-    
-    const handleThemeChange = (event) => setDarkMode(event.detail.darkMode);
-    window.addEventListener('themeChange', handleThemeChange);
-    return () => window.removeEventListener('themeChange', handleThemeChange);
+    // Load dark mode preference
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
   }, []);
 
   // Data fetching hooks
   const { institutionData, institutionError, institutionLoading } = useInstitutionData(token);
   const { students, error: studentsError, isLoading: studentsLoading, mutate: refreshStudents } = useStudentsData(token);
   const { templateData, templateError, templateLoading } = useTemplateData(token);
+  const { settingsData, settingsError, settingsLoading } = useSettingsData(token);
   const { paymentsData, paymentsError, paymentsLoading } = usePaymentsData(token);
   const { notificationsData, notificationsError, notificationsLoading } = useNotificationsData(token);
 
-  // Event handlers
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+  };
+
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
@@ -757,32 +991,14 @@ const InstitutionDashboard = () => {
     window.location.href = '/institution/login';
   };
 
-  const toggleDarkMode = () => {
-    if (!isClient) return;
-    
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('instipass-theme', newDarkMode ? 'dark' : 'light');
-    const event = new CustomEvent('themeChange', { detail: { darkMode: newDarkMode } });
-    window.dispatchEvent(event);
-  };
-
   const renderMainContent = () => {
     switch (activePage) {
-      case 'dashboard':
-        return <DashboardPage 
-          students={students} 
-          loading={studentsLoading} 
-          error={studentsError} 
-          darkMode={darkMode} 
-          refreshData={refreshStudents}
-        />;
       case 'template-settings':
         return <TemplateSettingsPage 
-          templateData={templateData} 
-          loading={templateLoading} 
-          error={templateError} 
-          darkMode={darkMode} 
+          settingsData={settingsData}
+          loading={settingsLoading} 
+          error={settingsError} 
+          darkMode={darkMode}
         />;
       case 'payments':
         return <PaymentsPage 
@@ -834,18 +1050,18 @@ const InstitutionDashboard = () => {
 
   // Get institution logo or fallback to default
   const getProfileImage = () => {
-    // console.log(institutionData.name)
-    if (institutionData && institutionData.logo) {
-      return institutionData.logo;
+    const institution = Array.isArray(institutionData) ? institutionData[0] : institutionData;
+    if (institution && institution.logo) {
+      return institution.logo;
     }
-    return "https://i.pravatar.cc/40?u=admin";
-    
+    return "https://api.dicebear.com/8.x/initials/svg?seed=Admin&backgroundColor=0D8ABC&textColor=#0d9488";
   };
 
   // Get institution name or fallback to default
   const getProfileName = () => {
-    if (institutionData) {
-      return institutionData.name;
+    const institution = Array.isArray(institutionData) ? institutionData[0] : institutionData;
+    if (institution) {
+      return institution.name;
     }
     return "Admin User";
   };
@@ -864,6 +1080,14 @@ const InstitutionDashboard = () => {
   return (
     <AcessTokenProtectedPage>
       <div className={`flex h-screen overflow-hidden ${darkMode ? 'bg-gray-900 text-gray-200 dark' : 'bg-gray-100 text-gray-800'}`}>
+        {/* Institution Details Popup */}
+        <InstitutionDetailsPopup 
+          institutionData={institutionData}
+          isOpen={showInstitutionPopup}
+          onClose={() => setShowInstitutionPopup(false)}
+          darkMode={darkMode}
+        />
+
         {/* Desktop Sidebar */}
         <AnimatePresence>
         {sidebarOpen && (
@@ -1029,16 +1253,21 @@ const InstitutionDashboard = () => {
                 {institutionLoading ? (
                   <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
                 ) : (
-                  <img 
-                    src={getProfileImage()} 
-                    alt={getProfileName()} 
-                    className="w-8 h-8 rounded-full object-cover"
-                    onError={(e) => {
-                      e.target.src = "https://i.pravatar.cc/40?u=admin";
-                    }}
-                  />
+                  <button
+                    onClick={() => setShowInstitutionPopup(true)}
+                    className="focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-full"
+                  >
+                    <img 
+                      src={getProfileImage()} 
+                      alt={getProfileName()} 
+                      className="w-8 h-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-teal-500 transition-all"
+                      onError={(e) => {
+                        e.target.src = "https://i.pravatar.cc/40?u=admin";
+                      }}
+                    />
+                  </button>
                 )}
-                <span className="ml-2 hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span className={`ml-2 hidden md:block text-sm font-medium ${darkMode?'text-gray-300':'text-black'}`}>
                   {institutionLoading ? "Loading..." : getProfileName()}
                 </span>
               </div>

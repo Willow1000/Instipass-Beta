@@ -132,7 +132,16 @@ class RegistrationTracker(models.Model):
         return f"{self.fingerprint} - {self.submitted_at}"
 
 class Notifications(models.Model):
+    NOTIFICATION_TYPE_CHOICES = [
+    ('success', 'Success'),
+    ('warning', 'Warning'),
+    ('error', 'Error'),
+    ('info', 'Info'),
+]
+    
+    title = models.CharField(max_length=30,null=True,blank=True)
     recipient = models.ForeignKey(Institution,on_delete = models.CASCADE)
+    type = models.CharField(max_length=10,choices=NOTIFICATION_TYPE_CHOICES,null=True,blank=True)
     message = models.CharField(max_length=250)
     created_at = models.DateTimeField(auto_now_add=True)
 

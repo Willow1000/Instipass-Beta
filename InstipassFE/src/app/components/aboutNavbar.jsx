@@ -64,7 +64,7 @@ const AboutNavbar = () => {
           <div className="w-10 h-10 rounded-full bg-[#1D3557] text-white flex items-center justify-center mr-3">
             <CreditCard size={20} />
           </div>
-          <Link href="/"><span className="text-xl font-bold text-[#1D3557] dark:text-white">Instipass</span></Link>
+          <Link href="/"> <span className={`text-xl font-bold ${darkMode? 'text-white':'text-[#2A9D8F]'}`}>Instipass</span></Link>
         </div>
         
         {/* Desktop Navigation */}

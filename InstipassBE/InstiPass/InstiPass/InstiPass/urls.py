@@ -2,6 +2,7 @@ from django.contrib import admin
 from InstiPass import settings
 from django.conf.urls.static import static
 from django.urls import path,include
+from .views import *
 # from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
@@ -25,3 +26,7 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns+= static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
+
+handler404 = error_404
+handler500 = error_500
+handler403 = error_403

@@ -517,11 +517,11 @@ const BookDemoModal = ({ darkMode, onClose }) => {
                           } focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-[#2A9D8F]`}
                         >
                           <option value="">Select size</option>
-                          <option value="S">50-200</option>
-                          <option value="M">201-1000 students</option>
-                          <option value="L">1001-4000 students</option>
-                          <option value="XL">4001-6000 students</option>
-                          <option value="XXL">6000+ students</option>
+                          <option value="S">50-200 students</option>
+                          <option value="M">201-1,000 students</option>
+                          <option value="L">1,001-5,000 students</option>
+                          <option value="XL">5,001-10,000 students</option>
+                          <option value="XXL">10,001+ students</option>
                         </select>
                         {formErrors.size && (
                           <p className="mt-1 text-sm text-red-500">{formErrors.size}</p>

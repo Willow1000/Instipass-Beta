@@ -16,7 +16,7 @@ class InstitutionSettingsSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notifications
-        fields = ['message','created_at']
+        fields = "__all__"
 
 class NewsLetterSerializer(serializers.ModelSerializer):
     class Meta:

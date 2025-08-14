@@ -317,21 +317,21 @@ def send_student_registration_link(sender, instance, created, **kwargs):
         token = token_obj.get('token')
         lifetime = token_obj.get("lifetime")
         exp = token_obj.get('expiry_date')
-        InstitutionToken.objects.create(institution=instance,token=token,lifetime=lifetime,expiry_date=exp)
+        InstitutionToken.objects.create(institution=instance.institution,token=token,lifetime=lifetime,expiry_date=exp)
 
         try:
             send_mail(
-                subject='Student REgistration link',
+                subject='Student Registration link',
                 message=f'students can register for their Ids using this link http://127.0.0.1:3000/students?token={token} , desclaimer: a device can only register one student',
                 from_email="notifications@instipass.com",
-                recipient_list=[instance.admin_email],
+                recipient_list=[instance.institution.admin_email],
                 fail_silently=False
             )
             send_mail(
-                subject='Student REgistration link',
+                subject='Student Registration link',
                 message=f'students can register for their Ids using this link http://127.0.0.1:3000/students?token={token} , desclaimer: a device can only register one student',
                 from_email="notifications@instipass.com",
-                recipient_list=[instance.email],
+                recipient_list=[instance.institution.email],
                 fail_silently=False
             )
         except Exception as e:

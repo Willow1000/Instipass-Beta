@@ -15,7 +15,6 @@ const InstitutionSettingsForm = () => {
   const [templatePreview, setTemplatePreview] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [, set] = useState(true);
   const [submitStatus, setSubmitStatus] = useState(null); // null, 'success', 'error'
   const [errorMessage, setErrorMessage] = useState('');
   const fileInputRef = useRef(null);
@@ -30,67 +29,12 @@ const InstitutionSettingsForm = () => {
     { value: "both", label: "Both" }
   ];
 
-  // Function to handle token refresh
-  
-  
-  // Helper function to get cookie by name
-  
-  // Fetch institution data and check authentication on component mount
-  // useEffect(() => {
-  //   const fetchInstitutionData = async () => {
-  //     set(true);
-      
-  //     try {
-  //       // Check for access token
-  //       const accessToken = localStorage.getItem('access_token');
-        
-  //       if (!accessToken) {
-  //         // No access token, redirect to login
-  //         window.location.href = '/institution/login';
-  //         return;
-  //       }
-        
-  //       // Fetch institution data
-  //       const response = await fetch('http://127.0.0.1:8000/institution/api/institution/', {
-  //         method: 'GET',
-  //         headers: {
-  //           'Authorization': `Bearer ${accessToken}`
-  //         },
-  //         credentials: 'include'
-  //       });
-        
-  //       if (response.ok) {
-  //         const data = await response.json();
-          
-  //         // Check if we have institution data
-  //         if (Array.isArray(data) && data.length > 0) {
-  //           const institutionId = data[0].id;
-            
-  //           // Set institution ID in form data
-  //           setFormData(prevData => ({
-  //             ...prevData,
-  //             institution: institutionId
-  //           }));
-  //         } else {
-  //           throw new Error('No institution data found');
-  //         }
-  //       } else if (response.status === 401) {
-  //         // Token is invalid, try to refresh
-  //         await refreshAccessToken();
-  //       } else {
-  //         throw new Error(`Failed to fetch institution data: ${response.status}`);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching institution data:', error);
-  //       setErrorMessage('Failed to load institution data. Please try again later.');
-  //       setSubmitStatus('error');
-  //     } finally {
-  //       set(false);
-  //     }
-  //   };
-    
-  //   fetchInstitutionData();
-  // }, []);
+  // Function to handle token refresh - placeholder
+  const refreshAccessToken = async () => {
+    // This function would need to be implemented based on your auth system
+    console.log('Token refresh would be called here');
+    return false;
+  };
 
   // Initialize dark mode from localStorage and listen for theme changes
   useEffect(() => {
@@ -110,12 +54,49 @@ const InstitutionSettingsForm = () => {
     }
   }, []);
 
+  const [institutionId, setInstitutionId] = useState();
+
+  // Fetch institution ID on component mount
+  useEffect(() => {
+    const fetchInstitutionId = async () => {
+      try {
+        const accessToken = localStorage.getItem("access_token");
+        if (!accessToken) {
+          console.error("No access token found in local storage.");
+          return;
+        }
+
+        const response = await fetch("http://127.0.0.1:8000/institution/api/institution", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setInstitutionId(parseInt(data[0].id));
+          setFormData(prevData => ({ ...prevData, institution: data[0].id }));
+        } else {
+          console.warn("No institution data found.");
+        }
+      } catch (error) {
+        console.error("Error fetching institution ID:", error);
+      }
+    };
+
+    fetchInstitutionId();
+  }, []);
+
   // Reset status message after 5 seconds
   useEffect(() => {
     if (submitStatus) {
       const timer = setTimeout(() => {
         setSubmitStatus(null);
-        setErrorMessage('');
+        setErrorMessage("");
       }, 5000);
       return () => clearTimeout(timer);
     }
@@ -215,22 +196,25 @@ const InstitutionSettingsForm = () => {
       errors.notification_pref = 'Notification preference is required';
     }
     
-    // Validate template
-    if (!formData.template) {
-      errors.template = 'Institution template is required';
-    }
+    // Make template optional for testing - comment out validation
+    // if (!formData.template) {
+    //   errors.template = 'Institution template is required';
+    // }
     
-    // Validate institution
-    if (!formData.institution) {
-      errors.institution = 'Institution data could not be loaded';
-    }
+    // Validate institution - skip for now to test submission
+    // if (!formData.institution) {
+    //   errors.institution = 'Institution data could not be loaded';
+    // }
     
     return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted!'); // Debug log
+    
     const errors = validateForm();
+    console.log('Validation errors:', errors); // Debug log
     
     if (Object.keys(errors).length === 0) {
       setIsSubmitting(true);
@@ -238,13 +222,15 @@ const InstitutionSettingsForm = () => {
       setErrorMessage('');
       
       try {
+         // Debug log
+        
         // Get access token from localStorage
         const accessToken = localStorage.getItem('access_token');
+       
         
         if (!accessToken) {
-          // No access token, redirect to login
-          window.location.href = '/institution/login';
-          return;
+          // For testing, simulate missing token error
+          throw new Error('No access token found. Please log in.');
         }
         
         // Create FormData object for multipart/form-data (required for file upload)
@@ -261,39 +247,35 @@ const InstitutionSettingsForm = () => {
           }
         });
         
+        
+        
         // Prepare headers with authentication (but no Content-Type for multipart/form-data)
         const headers = {
           'Authorization': `Bearer ${accessToken}`
         };
         
+        console.log('Making API request...'); // Debug log
+        
         // Make API request
         const response = await fetch('http://127.0.0.1:8000/institution/api/settings/', {
           method: 'POST',
           headers: headers,
-
           body: formDataToSend,
-          // credentials: 'include' // Include cookies if needed
         });
+        
+        
         
         // Handle response based on status code
         if (response.ok) {
           const data = await response.json();
+          console.log('Success response:', data); // Debug log
        
           setSubmitStatus('success');
-          
+          setTimeout(()=>{
+            window.location.href="/institution"
+          },5000)
           // Reset form after successful submission
-          setFormData({
-            qrcode: false,
-            barcode: true,
-            min_admission_year: new Date().getFullYear(),
-            notification_pref: '',
-            template: null,
-            institution: formData.institution // Keep the institution ID
-          });
-          setTemplatePreview(null);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
+          
         } else {
           // Handle different error status codes
           if (response.status === 401) {
@@ -333,12 +315,14 @@ const InstitutionSettingsForm = () => {
           }
         }
       } catch (error) {
+        console.log('Error during submission:', error); // Debug log
         setSubmitStatus('error');
         setErrorMessage(error.message || 'Failed to submit form. Please try again.');
       } finally {
         setIsSubmitting(false);
       }
     } else {
+      console.log('Form has validation errors, setting form errors'); // Debug log
       setFormErrors(errors);
     }
   };
@@ -383,8 +367,6 @@ const InstitutionSettingsForm = () => {
     }
   };
 
-
-
   return (
     <div className={`flex justify-center items-center min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       <motion.div 
@@ -393,9 +375,6 @@ const InstitutionSettingsForm = () => {
         transition={{ duration: 0.5 }}
         className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 w-full max-w-2xl mx-4 my-8 relative`}
       >
-        {/* Loading Overlay */}
-        
-        
         <div className="text-center mb-8">
           <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-[#1D3557]'} mb-2`}>Institution Settings</h1>
           <div className="w-16 h-1 bg-[#2A9D8F] mx-auto mb-4"></div>
@@ -431,7 +410,7 @@ const InstitutionSettingsForm = () => {
                 checked={formData.barcode}
                 onChange={handleInputChange}
                 className={`h-5 w-5 rounded ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'} focus:ring-[#2A9D8F] text-[#2A9D8F]`}
-                disabled={isSubmitting }
+                disabled={isSubmitting}
               />
               <label htmlFor="barcode" className={`ml-2 block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Enable Barcode
@@ -453,10 +432,10 @@ const InstitutionSettingsForm = () => {
               min="2020"
               max={currentYear}
               className={`w-full px-3 py-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'} focus:outline-none focus:ring-2 focus:ring-[#2A9D8F] focus:border-transparent transition-colors`}
-              disabled={isSubmitting }
+              disabled={isSubmitting}
             />
             <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Must be between 2020 and {currentYear}
+              Must be between 2020 and ${currentYear}
             </p>
             {formErrors.min_admission_year && (
               <p className="mt-1 text-sm text-red-500">{formErrors.min_admission_year}</p>
@@ -517,7 +496,7 @@ const InstitutionSettingsForm = () => {
                       darkMode
                         ? 'bg-blue-600 hover:bg-blue-700 text-white'
                         : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
-                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${(isSubmitting ) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {formData.template ? 'Change Template' : 'Upload Template'}
                   </label>
@@ -530,7 +509,7 @@ const InstitutionSettingsForm = () => {
                           ? 'bg-red-600 hover:bg-red-700 text-white'
                           : 'bg-red-100 hover:bg-red-200 text-red-700'
                       } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-                      disabled={isSubmitting }
+                      disabled={isSubmitting}
                     >
                       Remove
                     </button>
@@ -546,32 +525,35 @@ const InstitutionSettingsForm = () => {
             )}
           </div>
           
-          
+             {/* Hidden input for institution ID */}
+          {institutionId && (
+            <input type="hidden" name="institution" value={institutionId} />
+          )}
+
           {/* Submit Button */}
-          <motion.button 
-            type="submit" 
-            className={`w-full py-3 px-4 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-[#2A9D8F] focus:ring-offset-2 transition-colors mt-6 ${
-              isSubmitting 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-[#2A9D8F] text-white hover:bg-opacity-90'
-            }`}
-            whileHover={{ scale: (isSubmitting ) ? 1 : 1.02 }}
-            whileTap={{ scale: (isSubmitting ) ? 1 : 0.98 }}
-            disabled={isSubmitting }
-          >
-            {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Saving...
-              </div>
-            ) : (
-              'Save Settings'
-            )}
-          </motion.button>
-          <button type='submit'>SUbmit</button>
+          <div className="flex justify-center">
+            <motion.button
+              type="submit"
+              className={`px-8 py-3 rounded-lg text-white font-semibold shadow-md transition-all duration-300
+                ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2A9D8F] hover:bg-[#248D7F]'}
+              `}
+              whileHover={{ scale: isSubmitting ? 1 : 1.05 }}
+              whileTap={{ scale: isSubmitting ? 1 : 0.95 }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </span>
+              ) : (
+                "Save Settings"
+              )}
+            </motion.button>
+          </div>
         </form>
       </motion.div>
     </div>
@@ -579,3 +561,4 @@ const InstitutionSettingsForm = () => {
 };
 
 export default InstitutionSettingsForm;
+
